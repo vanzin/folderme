@@ -5,7 +5,7 @@ import util
 from mutagen.easyid3 import EasyID3
 
 
-class Track:
+class Track(util.ConfigObj):
     def __init__(self, path):
         mf = mutagen.File(path, easy=True)
         if not mf:
@@ -26,8 +26,14 @@ class Track:
         return "Track({})".format(str(self.__dict__))
 
 
-class Album:
-    def __init__(self, path, files=None):
+class Album(util.ConfigObj):
+    def __init__(self):
+        self.album = None
+        self.artist = None
+        self.tracks = []
+        self.mtime = 0
+
+    def init(self, path, files=None):
         self.path = path
 
         artist = None
@@ -67,7 +73,7 @@ class Album:
         return "Album({})".format(str(self.__dict__))
 
 
-class Collection:
+class Collection(util.ConfigObj):
     def __init__(self):
         self.albums = []
         self.locations = ["/media/common/music"]
@@ -79,7 +85,8 @@ class Collection:
             for root, dirs, files in os.walk(path):
                 if files:
                     try:
-                        a = Album(root, files=files)
+                        a = Album()
+                        a.init(root, files=files)
                         albums.append(a)
                         tcnt += len(a.tracks)
                     except:
