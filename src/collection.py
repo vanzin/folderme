@@ -6,7 +6,13 @@ from mutagen.easyid3 import EasyID3
 
 
 class Track(util.ConfigObj):
-    def __init__(self, path):
+    def __init__(self):
+        self.path = None
+        self.artist = None
+        self.album = None
+        self.title = None
+
+    def init(self, path):
         mf = mutagen.File(path, easy=True)
         if not mf:
             raise Exception(f"Unrecognized file {path}")
@@ -47,7 +53,8 @@ class Album(util.ConfigObj):
             ]
 
         for f in files:
-            t = Track(os.path.join(path, f))
+            t = Track()
+            t.init(os.path.join(path, f))
             if album and album != t.album:
                 raise Exception(f"Inconsistent album info in {path}.")
 
@@ -63,6 +70,8 @@ class Album(util.ConfigObj):
 
         if not artist:
             raise Exception(f"Unable to figure out path {path}")
+
+        tracks.sort(key=lambda x: x.path)
 
         self.album = album
         self.artist = artist

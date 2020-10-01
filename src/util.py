@@ -45,8 +45,6 @@ def save_config(obj):
 
 def load_config(cls):
     path = os.path.join(config_dir(), cls.config_file_name())
-    dest = cls()
-    if os.path.isdir(path):
-        data = jsonpickle.decode(open(path).read())
-        dest.__dict__.update(data)
-    return dest
+    if os.path.isfile(path):
+        return jsonpickle.decode(open(path).read())
+    return cls()

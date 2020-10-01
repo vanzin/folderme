@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: BSD-2-Clause
 
-import media
+import collection
+import playlist
+import randomizer
 import sys
 import time
 import util
@@ -13,12 +15,28 @@ class MainWindow(QMainWindow):
         super().__init__()
         util.init_ui(self, "main.ui")
 
+        self.collection = util.load_config(collection.Collection)
+        print(f"Loaded {len(self.collection.albums)} albums.")
+        if not self.collection.albums:
+            print("Scanning...")
+            self.collection.scan()
+            print(f"Found {len(self.collection.albums)} albums.")
+            util.save_config(self.collection)
+
+        self.playlist = playlist.Playlist()
+        self.driver = randomizer.Randomizer(self.collection, self.playlist)
+
         self.playPause.clicked.connect(self.handlePlayPause)
-        self.quit.clicked.connect(QApplication.instance().quit)
+        self.quit.clicked.connect(self.handleQuit)
 
     def handlePlayPause(self):
-        p = media.Player(self, "/media/common/music/Alcest/Kodama/1-01 Kodama.mp3")
-        p.play()
+        if not self.playlist.albums:
+            self.driver.playlist_ended(self.playlist)
+        self.playlist.playpause()
+
+    def handleQuit(self):
+        util.save_config(self.playlist)
+        QApplication.instance().quit()
 
 
 def main():
