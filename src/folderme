@@ -10,10 +10,21 @@ import util
 from PyQt5.QtWidgets import QApplication, QMainWindow
 
 
-class MainWindow(QMainWindow):
+class UIListener(util.EventSource):
+    def ui_resized(self, widget):
+        pass
+
+    def ui_exit(self):
+        pass
+
+
+class MainWindow(QMainWindow, util.EventSource, util.StatefulUI):
     def __init__(self):
-        super().__init__()
+        QMainWindow.__init__(self)
+        util.EventSource.__init__(self)
+        util.StatefulUI.__init__(self, "main")
         util.init_ui(self, "main.ui")
+        self.restore_ui()
 
         self.collection = util.load_config(collection.Collection)
         print(f"Loaded {len(self.collection.albums)} albums.")
@@ -24,6 +35,8 @@ class MainWindow(QMainWindow):
             util.save_config(self.collection)
 
         self.playlist = util.load_config(playlist.Playlist)
+        self.playlist.add_listener(playlist.UIAdapter(self, self.playlist))
+
         self.driver = randomizer.Randomizer(self.collection, self.playlist)
 
         self.playPause.clicked.connect(self.handlePlayPause)
@@ -41,8 +54,21 @@ class MainWindow(QMainWindow):
         self.playlist.playpause()
 
     def handleQuit(self):
-        util.save_config(self.playlist)
+        self.fire_event(UIListener.ui_exit)
+        self.save_ui()
         QApplication.instance().quit()
+
+    def resizeEvent(self, e):
+        QMainWindow.resizeEvent(self, e)
+        self.fire_event(UIListener.ui_resized, self)
+
+    def showEvent(self, e):
+        QMainWindow.showEvent(self, e)
+        self.fire_event(UIListener.ui_resized, self)
+
+    def closeEvent(self, e):
+        self.save_ui()
+        QMainWindow.closeEvent(self, e)
 
 
 def main():

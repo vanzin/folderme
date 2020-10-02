@@ -3,6 +3,7 @@ import mutagen
 import os
 import util
 from mutagen.easyid3 import EasyID3
+from mutagen.id3 import ID3
 
 
 class Track(util.ConfigObj):
@@ -26,7 +27,12 @@ class Track(util.ConfigObj):
     def _read_id3(self, tags):
         self.artist = tags["artist"][0]
         self.album = tags["album"][0]
-        self.title = tags["title"]
+        self.title = tags["title"][0]
+
+    def cover_art(self):
+        tags = ID3(self.path)
+        art = tags.get("APIC:")
+        return art.data if art else None
 
     def __str__(self):
         return "Track({})".format(str(self.__dict__))
@@ -34,7 +40,7 @@ class Track(util.ConfigObj):
 
 class Album(util.ConfigObj):
     def __init__(self):
-        self.album = None
+        self.title = None
         self.artist = None
         self.tracks = []
         self.mtime = 0
@@ -43,7 +49,7 @@ class Album(util.ConfigObj):
         self.path = path
 
         artist = None
-        album = None
+        title = None
         mtime = 0
         tracks = []
 
@@ -55,10 +61,10 @@ class Album(util.ConfigObj):
         for f in files:
             t = Track()
             t.init(os.path.join(path, f))
-            if album and album != t.album:
+            if title and title != t.album:
                 raise Exception(f"Inconsistent album info in {path}.")
 
-            album = t.album
+            title = t.album
 
             if artist is None:
                 artist = t.artist
@@ -73,7 +79,7 @@ class Album(util.ConfigObj):
 
         tracks.sort(key=lambda x: x.path)
 
-        self.album = album
+        self.title = title
         self.artist = artist
         self.tracks = tracks
         self.mtime = mtime

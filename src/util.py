@@ -2,6 +2,9 @@
 import jsonpickle
 import os
 from PyQt5 import uic
+from PyQt5.QtCore import QSettings
+
+SETTINGS = QSettings("vanzin.org", "folderme")
 
 
 class ConfigObj:
@@ -41,13 +44,35 @@ class EventSource:
                 m(*args)
 
 
+class StatefulUI:
+    """
+    Mix-in to help storing and restoring UI state.
+    """
+
+    def __init__(self, name):
+        self._ui_name = name
+
+    def restore_ui(self):
+        data = SETTINGS.value(f"{self._ui_name}/geometry")
+        if data:
+            self.restoreGeometry(data)
+
+        data = SETTINGS.value(f"{self._ui_name}/windowState")
+        if data:
+            self.restoreState(data)
+
+    def save_ui(self):
+        SETTINGS.setValue(f"{self._ui_name}/geometry", self.saveGeometry())
+        SETTINGS.setValue(f"{self._ui_name}/windowState", self.saveState())
+
+
 def init_ui(widget, src):
     path = os.path.join(os.path.dirname(__file__), "ui", src)
     uic.loadUi(path, widget)
 
 
 def config_dir(create=False):
-    path = os.path.join(os.environ["HOME"], ".config", "folderme")
+    path = os.path.dirname(SETTINGS.fileName())
     path = os.environ.get("FOLDERME_CONFIG", path)
     if create and not os.path.isdir(path):
         os.mkdir(path)

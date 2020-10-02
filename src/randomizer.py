@@ -25,6 +25,6 @@ class Randomizer(playlist.Listener):
             if next.artist in ignore:
                 continue
 
-            print(f"Playing {next.artist}/{next.album}")
+            print(f"Playing {next.artist}/{next.title}")
             self.playlist.replace(next, play=play)
             return
