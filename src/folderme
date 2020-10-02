@@ -7,7 +7,8 @@ import randomizer
 import sys
 import time
 import util
-from PyQt5.QtWidgets import QApplication, QMainWindow
+from PyQt5.QtGui import QIcon
+from PyQt5.QtWidgets import QApplication, QMainWindow, QMenu, QSystemTrayIcon
 
 
 class UIListener(util.EventSource):
@@ -16,6 +17,39 @@ class UIListener(util.EventSource):
 
     def ui_exit(self):
         pass
+
+
+class TrayIcon(QSystemTrayIcon):
+    def __init__(self, ui):
+        QSystemTrayIcon.__init__(self, QIcon(util.icon("folderme.png")))
+        self.ui = ui
+
+        menu = QMenu()
+
+        a = menu.addAction(QIcon(util.icon("play.png")), "Play")
+        a.triggered.connect(self.ui.playlist.playpause)
+
+        a = menu.addAction(QIcon(util.icon("pause.png")), "Pause")
+        a.triggered.connect(self.ui.playlist.playpause)
+
+        a = menu.addAction(QIcon(util.icon("stop.png")), "Stop")
+        a.triggered.connect(self.ui.playlist.playpause)
+
+        a = menu.addAction(QIcon(util.icon("quit.png")), "Quit")
+        a.triggered.connect(self.ui.handleQuit)
+
+        self.setContextMenu(menu)
+
+        self.activated.connect(self._activated)
+
+    def _activated(self, reason):
+        if reason != self.Trigger:
+            return
+
+        if self.ui.isVisible():
+            self.ui.hide()
+        else:
+            self.ui.show()
 
 
 class MainWindow(QMainWindow, util.EventSource, util.StatefulUI):
@@ -73,9 +107,11 @@ class MainWindow(QMainWindow, util.EventSource, util.StatefulUI):
 
 def main():
     app = QApplication(sys.argv)
+    app.setWindowIcon(QIcon(util.icon("folderme.png")))
 
     mainUI = MainWindow()
-    mainUI.show()
+    tray = TrayIcon(mainUI)
+    tray.show()
 
     sys.exit(app.exec_())
 

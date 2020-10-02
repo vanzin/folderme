@@ -97,3 +97,7 @@ def load_config(cls):
     if os.path.isfile(path):
         return jsonpickle.decode(open(path).read())
     return cls()
+
+
+def icon(name):
+    return os.path.join(os.path.dirname(__file__), "icons", name)
