@@ -81,21 +81,21 @@
        <number>10</number>
       </property>
       <item>
-       <widget class="QLabel" name="elapsed">
+       <widget class="QLabel" name="tElapsed">
         <property name="text">
          <string>0:00</string>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="QSlider" name="horizontalSlider">
+       <widget class="QSlider" name="tPosition">
         <property name="orientation">
          <enum>Qt::Horizontal</enum>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="QLabel" name="remaining">
+       <widget class="QLabel" name="tRemaining">
         <property name="text">
          <string>0:00</string>
         </property>

@@ -35,7 +35,7 @@ class MainWindow(QMainWindow, util.EventSource, util.StatefulUI):
             util.save_config(self.collection)
 
         self.playlist = util.load_config(playlist.Playlist)
-        self.playlist.add_listener(playlist.UIAdapter(self, self.playlist))
+        self.playlist.init_ui(self)
 
         self.driver = randomizer.Randomizer(self.collection, self.playlist)
 

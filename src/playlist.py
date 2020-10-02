@@ -96,13 +96,18 @@ class Playlist(util.ConfigObj, media.Listener, util.EventSource):
     def track_ended(self, player):
         self.next()
 
+    def init_ui(self, ui):
+        adapter = UIAdapter(ui, self)
+        self.add_listener(adapter)
+        ui.add_listener(adapter)
+        self._player.init_ui(ui)
+
 
 class UIAdapter:
     def __init__(self, ui, playlist):
         self.ui = ui
         self.playlist = playlist
         self._cover_img = None
-        ui.add_listener(self)
 
         if playlist.albums:
             self._update_playlist(self.playlist)
