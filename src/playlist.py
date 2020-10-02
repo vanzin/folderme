@@ -4,6 +4,9 @@ import util
 
 
 class Listener:
+    def playlist_playing(self, playlist):
+        pass
+
     def playlist_changed(self, playlist):
         pass
 
@@ -11,28 +14,21 @@ class Listener:
         pass
 
 
-class PlayerListener(media.Listener):
-    def __init__(self, playlist):
-        self.playlist = playlist
-
-    def ended(self, player):
-        self.playlist.next()
-
-
-class Playlist(util.ConfigObj):
+class Playlist(util.ConfigObj, media.Listener, util.EventSource):
     def __init__(self):
+        util.EventSource.__init__(self)
         self.albums = []
         self.current_track = 0
-        self._player_listener = PlayerListener(self)
-        self._listeners = []
-        self._player = media.Player(self._player_listener)
-
-    def add_listener(self, l):
-        self._listeners.append(l)
+        self._player = media.Player()
+        self._player.add_listener(self)
 
     def playpause(self):
         if self._player.is_playing():
             self._player.pause()
+            return
+
+        if self._player.is_paused():
+            self._player.play()
             return
 
         if not self.albums:
@@ -42,6 +38,7 @@ class Playlist(util.ConfigObj):
         track = self.albums[0].tracks[self.current_track]
         print(f"start {track}")
         self._player.play(track=track)
+        self.fire_event(Listener.playlist_playing, self)
 
     def is_playing(self):
         return self._player.is_playing()
@@ -62,11 +59,9 @@ class Playlist(util.ConfigObj):
         if self.albums:
             self.current_track = 0
             self.playpause()
-            for l in self._listeners:
-                l.playlist_changed(self)
+            self.fire_event(Listener.playlist_changed, self)
         else:
-            for l in self._listeners:
-                l.playlist_ended(self)
+            self.fire_event(Listener.playlist_ended, self)
 
     def prev(self):
         self.stop()
@@ -84,3 +79,10 @@ class Playlist(util.ConfigObj):
         self.stop()
         if play:
             self.playpause()
+
+    def add_listener(self, l):
+        util.EventSource.add_listener(self, l)
+        self._player.add_listener(l)
+
+    def track_ended(self, player):
+        self.next()

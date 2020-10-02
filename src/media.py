@@ -1,5 +1,6 @@
 # SPDX-License-Identifier: BSD-2-Clause
 import sys
+import util
 
 from PyQt5.QtCore import QUrl
 from PyQt5.QtMultimedia import QMediaPlayer, QMediaContent
@@ -7,42 +8,41 @@ from PyQt5.QtWidgets import QApplication
 
 
 class Listener:
-    def paused(self, player):
+    def track_paused(self, player):
         pass
 
-    def playing(self, player):
+    def track_playing(self, player):
         pass
 
-    def stopped(self, player):
+    def track_stopped(self, player):
         pass
 
     def track_ended(self, player):
         pass
 
 
-class Player:
+class Player(util.EventSource):
     """
     Player encapsulates playing a single file.
     """
 
-    def __init__(self, listener):
-        self._listener = listener
+    def __init__(self):
+        util.EventSource.__init__(self)
         self._player = QMediaPlayer(QApplication.instance())
         self._player.mediaStatusChanged.connect(self._handleStatusChange)
         self._player.stateChanged.connect(self._handleStateChange)
 
     def _handleStatusChange(self, status):
         if status == self._player.EndOfMedia:
-            print("Track ended")
-            self._listener.ended(self)
+            self.fire_event(Listener.track_ended, self)
 
     def _handleStateChange(self, state):
         if state == self._player.StoppedState:
-            self._listener.stopped(self)
+            self.fire_event(Listener.track_stopped, self)
         elif state == self._player.PlayingState:
-            self._listener.playing(self)
+            self.fire_event(Listener.track_playing, self)
         elif state == self._player.PausedState:
-            self._listener.paused(self)
+            self.fire_event(Listener.track_paused, self)
 
     def play(self, track=None):
         if track:
@@ -61,3 +61,6 @@ class Player:
 
     def is_playing(self):
         return self._player.state() == self._player.PlayingState
+
+    def is_paused(self):
+        return self._player.state() == self._player.PausedState

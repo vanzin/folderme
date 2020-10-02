@@ -22,6 +22,25 @@ class ConfigObj:
             setattr(self, k, v)
 
 
+class EventSource:
+    """
+    Base class for objects that generate events. Handles listener registration and event
+    firing.
+    """
+
+    def __init__(self):
+        self._listeners = []
+
+    def add_listener(self, l):
+        self._listeners.append(l)
+
+    def fire_event(self, handler, *args):
+        for l in self._listeners:
+            m = getattr(l, handler.__name__, None)
+            if m:
+                m(*args)
+
+
 def init_ui(widget, src):
     path = os.path.join(os.path.dirname(__file__), "ui", src)
     uic.loadUi(path, widget)
