@@ -16,6 +16,11 @@ class ConfigObj:
     def __getstate__(self):
         return {k: v for k, v in self.__dict__.items() if not k.startswith("_")}
 
+    def __setstate__(self, data):
+        self.__init__()
+        for k, v in data.items():
+            setattr(self, k, v)
+
 
 def init_ui(widget, src):
     path = os.path.join(os.path.dirname(__file__), "ui", src)

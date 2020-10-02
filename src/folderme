@@ -23,15 +23,21 @@ class MainWindow(QMainWindow):
             print(f"Found {len(self.collection.albums)} albums.")
             util.save_config(self.collection)
 
-        self.playlist = playlist.Playlist()
+        self.playlist = util.load_config(playlist.Playlist)
         self.driver = randomizer.Randomizer(self.collection, self.playlist)
 
         self.playPause.clicked.connect(self.handlePlayPause)
         self.quit.clicked.connect(self.handleQuit)
+        self.next.clicked.connect(self.playlist.next)
+        self.previous.clicked.connect(self.playlist.prev)
+        self.newAlbum.clicked.connect(self.driver.pick_next)
+        self.stop.clicked.connect(self.playlist.stop)
+
+        self.playlistUI.setFocus()
 
     def handlePlayPause(self):
         if not self.playlist.albums:
-            self.driver.playlist_ended(self.playlist)
+            self.driver.pick_next()
         self.playlist.playpause()
 
     def handleQuit(self):
