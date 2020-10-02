@@ -90,6 +90,7 @@ class UIAdapter(Listener):
         self.ui.tPosition.sliderPressed.connect(self.slider_pressed)
         self.ui.tPosition.sliderReleased.connect(self.slider_released)
         self.ui.tPosition.sliderMoved.connect(self.slider_moved)
+        self.ui.tPosition.actionTriggered.connect(self.action_triggered)
 
     def _ms_to_text(self, ms):
         secs = int(ms / 1000)
@@ -159,3 +160,21 @@ class UIAdapter(Listener):
 
         position = self._normalize(self.ui.tPosition.sliderPosition())
         self.ui.tElapsed.setText(self._ms_to_text(position))
+
+    def action_triggered(self, action):
+        if self._slider_locked:
+            return
+
+        if action == self.ui.tPosition.SliderSingleStepAdd:
+            step = self.duration // 100
+        elif action == self.ui.tPosition.SliderSingleStepSub:
+            step = -self.duration // 100
+        elif action == self.ui.tPosition.SliderPageStepAdd:
+            step = self.duration // 10
+        elif action == self.ui.tPosition.SliderPageStepSub:
+            step = -self.duration // 10
+        else:
+            return
+
+        position = min(max(0, self.ui.tPosition.sliderPosition() + step), self.duration)
+        self.player.set_position(position)
