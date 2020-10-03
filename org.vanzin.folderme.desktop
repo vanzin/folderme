@@ -10,4 +10,8 @@ Icon=/usr/share/folderme/icons/folderme.png
 Terminal=false
 Categories=AudioVideo;Player;Qt;Audio;
 StartupNotify=false
-# Actions=Play;Pause;Stop;StopAfterCurrent;Previous;Next;
+Actions=PlayPause
+
+[Desktop Action PlayPause]
+Name=Play/Pause
+Exec=folderme playpause
