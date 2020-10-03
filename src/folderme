@@ -4,6 +4,7 @@
 import argparse
 import collection
 import ipc
+import media
 import playlist
 import randomizer
 import sys
@@ -21,7 +22,7 @@ class UIListener(util.EventSource):
         pass
 
 
-class TrayIcon(QSystemTrayIcon):
+class TrayIcon(QSystemTrayIcon, playlist.Listener, media.Listener):
     def __init__(self, ui):
         QSystemTrayIcon.__init__(self, QIcon(util.icon("folderme.png")))
         self.ui = ui
@@ -43,6 +44,8 @@ class TrayIcon(QSystemTrayIcon):
         self.setContextMenu(menu)
 
         self.activated.connect(self._activated)
+        self.setToolTip("Stopped")
+        self.ui.playlist.add_listener(self)
 
     def _activated(self, reason):
         if reason != self.Trigger:
@@ -52,6 +55,17 @@ class TrayIcon(QSystemTrayIcon):
             self.ui.hide()
         else:
             self.ui.show()
+
+    def track_playing(self, player):
+        track = self.ui.playlist.current_track()
+        self.setToolTip(f"Playing: {track.artist} - {track.title}")
+
+    def track_paused(self, player):
+        track = self.ui.playlist.current_track()
+        self.setToolTip(f"Paused: {track.artist} - {track.title}")
+
+    def track_stopped(self, player):
+        self.setToolTip(f"Stopped")
 
 
 class MainWindow(QMainWindow, util.EventSource, util.StatefulUI):
