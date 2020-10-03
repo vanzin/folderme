@@ -120,10 +120,10 @@ def start():
 
 
 def main():
-    if len(sys.argv) == 1:
-        start()
-    else:
-        ipc.send(sys.argv[1])
+    if "--remote" in sys.argv:
+        sys.exit(ipc.main(sys.argv))
+
+    start()
 
 
 if __name__ == "__main__":

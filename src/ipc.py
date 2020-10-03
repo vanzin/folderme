@@ -1,12 +1,8 @@
 # SPDX-License-Identifier: BSD-2-Clause
+import argparse
 import dbus
 import dbus.service
-import os
-import socket
-import threading
-import traceback
 import sys
-import util
 from dbus.mainloop.glib import DBusGMainLoop
 from PyQt5.QtWidgets import QApplication
 
@@ -32,8 +28,38 @@ class Server(dbus.service.Object):
         else:
             self.ui.playlist.playpause()
 
+    @dbus.service.method(
+        dbus_interface=PLAYLIST_IFACE, in_signature="", out_signature=""
+    )
+    def stop(self):
+        self.ui.playlist.stop()
 
-def send(cmd):
+    @dbus.service.method(
+        dbus_interface=PLAYLIST_IFACE, in_signature="", out_signature=""
+    )
+    def quit(self):
+        self.ui.handleQuit()
+
+    @dbus.service.method(
+        dbus_interface=PLAYLIST_IFACE, in_signature="", out_signature=""
+    )
+    def next(self):
+        self.ui.playlist.next()
+
+    @dbus.service.method(
+        dbus_interface=PLAYLIST_IFACE, in_signature="", out_signature=""
+    )
+    def prev(self):
+        self.ui.playlist.prev()
+
+
+def main(argv):
+    parser = argparse.ArgumentParser(description="FolderME remote control")
+    parser.add_argument("--remote", metavar="CMD", help="command to send to FolderME")
+    args = parser.parse_args(argv[1:])
+
     bus = dbus.SessionBus()
     server = bus.get_object(DBUS_SERVICE, DBUS_OBJECT)
-    server.playpause(dbus_interface=PLAYLIST_IFACE)
+    method = getattr(server, args.remote)
+    method(dbus_interface=PLAYLIST_IFACE)
+    return 0
