@@ -111,10 +111,11 @@ def start():
     app.setWindowIcon(QIcon(util.icon("folderme.png")))
 
     mainUI = MainWindow()
-    tray = TrayIcon(mainUI)
-    tray.show()
 
     server = ipc.Server(mainUI)
+
+    tray = TrayIcon(mainUI)
+    tray.show()
 
     sys.exit(app.exec_())
 

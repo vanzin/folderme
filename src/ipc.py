@@ -15,8 +15,19 @@ class Server(dbus.service.Object):
     def __init__(self, ui):
         DBusGMainLoop(set_as_default=True)
         bus = dbus.SessionBus()
+
+        claimed = False
+        try:
+            bus.get_name_owner(DBUS_SERVICE)
+            claimed = True
+        except:
+            pass
+
+        if claimed:
+            raise Exception("DBUS service already claimed.")
+
         bus_name = dbus.service.BusName(DBUS_SERVICE, bus=bus)
-        dbus.service.Object.__init__(self, bus_name, DBUS_OBJECT)
+        dbus.service.Object.__init__(self, bus, DBUS_OBJECT, bus_name=bus_name)
         self.ui = ui
 
     @dbus.service.method(
