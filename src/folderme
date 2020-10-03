@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: BSD-2-Clause
 
 import collection
+import ipc
 import playlist
 import randomizer
 import sys
@@ -105,7 +106,7 @@ class MainWindow(QMainWindow, util.EventSource, util.StatefulUI):
         QMainWindow.closeEvent(self, e)
 
 
-def main():
+def start():
     app = QApplication(sys.argv)
     app.setWindowIcon(QIcon(util.icon("folderme.png")))
 
@@ -113,7 +114,17 @@ def main():
     tray = TrayIcon(mainUI)
     tray.show()
 
+    server = ipc.Server(mainUI)
+    server.serve()
+
     sys.exit(app.exec_())
+
+
+def main():
+    if len(sys.argv) == 1:
+        start()
+    else:
+        ipc.send(sys.argv[1])
 
 
 if __name__ == "__main__":
