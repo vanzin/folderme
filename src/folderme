@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: BSD-2-Clause
 
+import argparse
 import collection
 import ipc
 import playlist
@@ -106,28 +107,46 @@ class MainWindow(QMainWindow, util.EventSource, util.StatefulUI):
         QMainWindow.closeEvent(self, e)
 
 
-def start():
+def start(args):
     app = QApplication(sys.argv)
     app.setWindowIcon(QIcon(util.icon("folderme.png")))
 
     mainUI = MainWindow()
 
-    server = ipc.Server(mainUI)
+    if not args.no_dbus:
+        server = ipc.Server(mainUI)
 
     tray = TrayIcon(mainUI)
     tray.show()
 
-    mainUI.show()
+    if args.show:
+        mainUI.show()
 
     sys.exit(app.exec_())
 
 
-def main():
-    if "--remote" in sys.argv:
-        sys.exit(ipc.main(sys.argv))
+def main(argv):
+    parser = argparse.ArgumentParser(description="FolderME music player")
+    parser.add_argument(
+        "--remote", metavar="CMD", help="send CMD to FolderME dbus service"
+    )
+    parser.add_argument(
+        "--show", action="store_true", default=False, help="show UI on startup"
+    )
+    parser.add_argument(
+        "--no-dbus",
+        action="store_true",
+        default=False,
+        help="do not start dbus service",
+    )
+    args = parser.parse_args(argv[1:])
 
-    start()
+    if args.remote:
+        ipc.send(args.remote)
+        sys.exit(0)
+
+    start(args)
 
 
 if __name__ == "__main__":
-    main()
+    main(sys.argv)

@@ -1,5 +1,4 @@
 # SPDX-License-Identifier: BSD-2-Clause
-import argparse
 import dbus
 import dbus.service
 import sys
@@ -8,7 +7,7 @@ from PyQt5.QtWidgets import QApplication
 
 DBUS_SERVICE = "org.vanzin.FolderME"
 DBUS_OBJECT = "/org/vanzin/FolderME"
-PLAYLIST_IFACE = f"{DBUS_SERVICE}.Playlist"
+REMOTE_CONTROL_IFACE = f"{DBUS_SERVICE}.Remote"
 
 
 class Server(dbus.service.Object):
@@ -31,7 +30,7 @@ class Server(dbus.service.Object):
         self.ui = ui
 
     @dbus.service.method(
-        dbus_interface=PLAYLIST_IFACE, in_signature="", out_signature=""
+        dbus_interface=REMOTE_CONTROL_IFACE, in_signature="", out_signature=""
     )
     def playpause(self):
         if not self.ui.playlist.albums and not self.ui.playlist.is_playing():
@@ -40,37 +39,32 @@ class Server(dbus.service.Object):
             self.ui.playlist.playpause()
 
     @dbus.service.method(
-        dbus_interface=PLAYLIST_IFACE, in_signature="", out_signature=""
+        dbus_interface=REMOTE_CONTROL_IFACE, in_signature="", out_signature=""
     )
     def stop(self):
         self.ui.playlist.stop()
 
     @dbus.service.method(
-        dbus_interface=PLAYLIST_IFACE, in_signature="", out_signature=""
+        dbus_interface=REMOTE_CONTROL_IFACE, in_signature="", out_signature=""
     )
     def quit(self):
         self.ui.handleQuit()
 
     @dbus.service.method(
-        dbus_interface=PLAYLIST_IFACE, in_signature="", out_signature=""
+        dbus_interface=REMOTE_CONTROL_IFACE, in_signature="", out_signature=""
     )
     def next(self):
         self.ui.playlist.next()
 
     @dbus.service.method(
-        dbus_interface=PLAYLIST_IFACE, in_signature="", out_signature=""
+        dbus_interface=REMOTE_CONTROL_IFACE, in_signature="", out_signature=""
     )
     def prev(self):
         self.ui.playlist.prev()
 
 
-def main(argv):
-    parser = argparse.ArgumentParser(description="FolderME remote control")
-    parser.add_argument("--remote", metavar="CMD", help="command to send to FolderME")
-    args = parser.parse_args(argv[1:])
-
+def send(cmd):
     bus = dbus.SessionBus()
     server = bus.get_object(DBUS_SERVICE, DBUS_OBJECT)
-    method = getattr(server, args.remote)
-    method(dbus_interface=PLAYLIST_IFACE)
-    return 0
+    method = getattr(server, cmd)
+    method(dbus_interface=REMOTE_CONTROL_IFACE)
