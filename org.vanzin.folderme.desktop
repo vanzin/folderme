@@ -1,0 +1,13 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=FolderME
+GenericName=FolderME Music Player
+Comment=Plays music
+Exec=folderme
+TryExec=folderme
+Icon=/usr/share/folderme/icons/folderme.png
+Terminal=false
+Categories=AudioVideo;Player;Qt;Audio;
+StartupNotify=false
+# Actions=Play;Pause;Stop;StopAfterCurrent;Previous;Next;
