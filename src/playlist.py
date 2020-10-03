@@ -165,30 +165,39 @@ class UIAdapter:
         for a in playlist.albums:
             album_ui = AlbumUI(self.ui.playlistUI, a)
 
-            cover = a.tracks[0].cover_art()
-            if cover:
-                pixmap = QPixmap()
-                pixmap.loadFromData(cover)
-                self._cover_img = pixmap
-                self._update_cover()
-                self._set_pixmap(album_ui.cover, pixmap)
-
             self._add_list_item(album_ui)
 
+            cover = None
             for t in a.tracks:
                 track_ui = TrackUI(self.ui.playlistUI, t)
                 self._add_list_item(track_ui)
+                if not cover:
+                    cover = t.cover_art()
+
+            pixmap = QPixmap()
+            if cover:
+                pixmap.loadFromData(cover)
+            else:
+                pixmap.load(util.icon("blank.jpg"))
+
+            self._cover_img = pixmap
+
+            self._update_cover()
+            self._set_pixmap(album_ui.cover, pixmap)
+
+        self._update_track(self.playlist.current_track())
 
     def _update_cover(self):
-        if not self._cover_img:
-            return
         self._set_pixmap(self.ui.plCover, self._cover_img)
 
     def _set_pixmap(self, label, pixmap):
-        h = label.height() - 5
-        w = label.width() - 5
-        scaled = pixmap.scaled(w, h, Qt.KeepAspectRatio)
-        label.setPixmap(scaled)
+        if pixmap:
+            h = label.height() - 5
+            w = label.width() - 5
+            scaled = pixmap.scaled(w, h, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+            label.setPixmap(scaled)
+        else:
+            label.setPixmap(None)
 
     def _add_list_item(self, widget):
         item = QListWidgetItem(self.ui.playlistUI)
