@@ -92,17 +92,6 @@ class UIAdapter(Listener):
         self.ui.tPosition.sliderMoved.connect(self.slider_moved)
         self.ui.tPosition.actionTriggered.connect(self.action_triggered)
 
-    def _ms_to_text(self, ms):
-        secs = int(ms / 1000)
-        mins = int(secs / 60)
-        secs -= mins * 60
-        hrs = int(mins / 60)
-        mins -= hrs * 60
-
-        if hrs > 0:
-            return f"{hrs}:{mins:02d}:{secs:02d}"
-        return f"{mins}:{secs:02d}"
-
     def _normalize(self, duration):
         return duration - (duration % 1000)
 
@@ -110,12 +99,12 @@ class UIAdapter(Listener):
         position = self._normalize(position)
         if self.duration:
             remaining = max(0, self.duration - position)
-            self.ui.tRemaining.setText(self._ms_to_text(remaining))
+            self.ui.tRemaining.setText(util.ms_to_text(remaining))
 
         if self._slider_locked:
             return
 
-        self.ui.tElapsed.setText(self._ms_to_text(position))
+        self.ui.tElapsed.setText(util.ms_to_text(position))
         self.ui.tPosition.setSliderPosition(position)
 
     def track_stopped(self, player):
@@ -130,7 +119,7 @@ class UIAdapter(Listener):
 
     def duration_changed(self, duration):
         duration = self._normalize(duration)
-        self.ui.tRemaining.setText(self._ms_to_text(duration))
+        self.ui.tRemaining.setText(util.ms_to_text(duration))
         self.ui.tPosition.setMinimum(0)
         self.ui.tPosition.setMaximum(duration)
         self.duration = duration
@@ -152,14 +141,14 @@ class UIAdapter(Listener):
         self.player.set_position(self.ui.tPosition.sliderPosition())
 
         position = self._normalize(self.player.position())
-        self.ui.tElapsed.setText(self._ms_to_text(position))
+        self.ui.tElapsed.setText(util.ms_to_text(position))
 
     def slider_moved(self):
         if not self._slider_locked:
             return
 
         position = self._normalize(self.ui.tPosition.sliderPosition())
-        self.ui.tElapsed.setText(self._ms_to_text(position))
+        self.ui.tElapsed.setText(util.ms_to_text(position))
 
     def action_triggered(self, action):
         if self._slider_locked:

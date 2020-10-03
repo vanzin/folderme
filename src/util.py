@@ -101,3 +101,15 @@ def load_config(cls):
 
 def icon(name):
     return os.path.join(os.path.dirname(__file__), "icons", name)
+
+
+def ms_to_text(ms):
+    secs = int(ms / 1000)
+    mins = int(secs / 60)
+    secs -= mins * 60
+    hrs = int(mins / 60)
+    mins -= hrs * 60
+
+    if hrs > 0:
+        return f"{hrs}:{mins:02d}:{secs:02d}"
+    return f"{mins}:{secs:02d}"

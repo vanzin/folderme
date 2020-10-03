@@ -24,22 +24,25 @@
        <property name="title">
         <string>FolderME Playlist</string>
        </property>
-       <layout class="QHBoxLayout" name="horizontalLayout_2">
+       <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="0,0">
         <item>
          <layout class="QVBoxLayout" name="verticalLayout_2" stretch="1,0,0">
           <item>
-           <widget class="QGraphicsView" name="plCover">
+           <widget class="QLabel" name="plCover">
             <property name="sizePolicy">
-             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-              <horstretch>1</horstretch>
-              <verstretch>1</verstretch>
+             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
              </sizepolicy>
             </property>
-            <property name="verticalScrollBarPolicy">
-             <enum>Qt::ScrollBarAlwaysOff</enum>
+            <property name="frameShape">
+             <enum>QFrame::StyledPanel</enum>
             </property>
-            <property name="horizontalScrollBarPolicy">
-             <enum>Qt::ScrollBarAlwaysOff</enum>
+            <property name="frameShadow">
+             <enum>QFrame::Sunken</enum>
+            </property>
+            <property name="text">
+             <string/>
             </property>
            </widget>
           </item>
@@ -66,7 +69,14 @@
          </layout>
         </item>
         <item>
-         <widget class="QListWidget" name="playlistUI"/>
+         <widget class="QListWidget" name="playlistUI">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+         </widget>
         </item>
        </layout>
       </widget>

@@ -34,6 +34,10 @@ class Track(util.ConfigObj):
         art = tags.get("APIC:")
         return art.data if art else None
 
+    def info(self):
+        f = mutagen.File(self.path, easy=True)
+        return (f.info, f.tags)
+
     def __str__(self):
         return "Track({})".format(str(self.__dict__))
 

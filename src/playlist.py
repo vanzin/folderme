@@ -3,7 +3,12 @@ import media
 import util
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QPixmap
-from PyQt5.QtWidgets import QGraphicsScene, QGraphicsPixmapItem
+from PyQt5.QtWidgets import (
+    QListWidgetItem,
+    QGraphicsScene,
+    QGraphicsPixmapItem,
+    QWidget,
+)
 
 
 class Listener:
@@ -103,6 +108,28 @@ class Playlist(util.ConfigObj, media.Listener, util.EventSource):
         self._player.init_ui(ui)
 
 
+class AlbumUI(QWidget):
+    def __init__(self, parent, album):
+        QWidget.__init__(self, parent)
+        util.init_ui(self, "album.ui")
+        self.lArtist.setText(album.artist)
+        self.lAlbum.setText(album.title)
+
+
+class TrackUI(QWidget):
+    def __init__(self, parent, track):
+        QWidget.__init__(self, parent)
+        util.init_ui(self, "track.ui")
+
+        info, tags = track.info()
+        duration = int(info.length * 1000)
+        title = tags["title"][0]
+        trackno = tags["tracknumber"][0]
+
+        self.lTitle.setText(f"{trackno} - {title}")
+        self.lDuration.setText(util.ms_to_text(duration))
+
+
 class UIAdapter:
     def __init__(self, ui, playlist):
         self.ui = ui
@@ -136,7 +163,7 @@ class UIAdapter:
         self.ui.playlistUI.clear()
 
         for a in playlist.albums:
-            self.ui.playlistUI.addItem(f"{a.artist} / {a.title}")
+            album_ui = AlbumUI(self.ui.playlistUI, a)
 
             cover = a.tracks[0].cover_art()
             if cover:
@@ -144,16 +171,27 @@ class UIAdapter:
                 pixmap.loadFromData(cover)
                 self._cover_img = pixmap
                 self._update_cover()
+                self._set_pixmap(album_ui.cover, pixmap)
+
+            self._add_list_item(album_ui)
 
             for t in a.tracks:
-                self.ui.playlistUI.addItem(f"  {t.title}")
+                track_ui = TrackUI(self.ui.playlistUI, t)
+                self._add_list_item(track_ui)
 
     def _update_cover(self):
         if not self._cover_img:
             return
+        self._set_pixmap(self.ui.plCover, self._cover_img)
 
-        cover = QGraphicsPixmapItem(self._cover_img)
-        scene = QGraphicsScene(self.ui.plCover)
-        scene.addItem(cover)
-        self.ui.plCover.setScene(scene)
-        self.ui.plCover.fitInView(cover, Qt.KeepAspectRatio)
+    def _set_pixmap(self, label, pixmap):
+        h = label.height() - 5
+        w = label.width() - 5
+        scaled = pixmap.scaled(w, h, Qt.KeepAspectRatio)
+        label.setPixmap(scaled)
+
+    def _add_list_item(self, widget):
+        item = QListWidgetItem(self.ui.playlistUI)
+        item.setSizeHint(widget.sizeHint())
+        self.ui.playlistUI.addItem(item)
+        self.ui.playlistUI.setItemWidget(item, widget)

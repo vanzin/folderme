@@ -117,6 +117,8 @@ def start():
     tray = TrayIcon(mainUI)
     tray.show()
 
+    mainUI.show()
+
     sys.exit(app.exec_())
 
 
