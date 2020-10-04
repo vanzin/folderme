@@ -2,7 +2,7 @@
 import jsonpickle
 import os
 from PyQt5 import uic
-from PyQt5.QtCore import QSettings
+from PyQt5.QtCore import Qt, QSettings
 
 SETTINGS = QSettings("vanzin.org", "folderme")
 
@@ -113,3 +113,10 @@ def ms_to_text(ms):
     if hrs > 0:
         return f"{hrs}:{mins:02d}:{secs:02d}"
     return f"{mins}:{secs:02d}"
+
+
+def set_pixmap(label, pixmap):
+    h = label.height()
+    w = label.width()
+    scaled = pixmap.scaled(w, h, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+    label.setPixmap(scaled)

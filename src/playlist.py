@@ -1,7 +1,6 @@
 # SPDX-License-Identifier: BSD-2-Clause
 import media
 import util
-from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtWidgets import (
     QListWidgetItem,
@@ -128,6 +127,15 @@ class TrackUI(QWidget):
 
         self.lTitle.setText(f"{trackno} - {title}")
         self.lDuration.setText(util.ms_to_text(duration))
+        self.set_playing(False)
+
+    def set_playing(self, playing):
+        pixmap = QPixmap()
+        if playing:
+            pixmap.load(util.icon("play.png"))
+        else:
+            pixmap.load(util.icon("empty.png"))
+        util.set_pixmap(self.lPlaying, pixmap)
 
 
 class UIAdapter:
@@ -159,6 +167,18 @@ class UIAdapter:
         self.ui.plArtist.setText(track.artist)
         self.ui.plAlbum.setText(track.album)
 
+        idx = 0
+        for t in self.playlist.albums[0].tracks:
+            idx += 1
+            if t is track:
+                break
+
+        for i in range(self.ui.playlistUI.count()):
+            item = self.ui.playlistUI.item(i)
+            widget = self.ui.playlistUI.itemWidget(item)
+            if isinstance(widget, TrackUI):
+                widget.set_playing(i == idx)
+
     def _update_playlist(self, playlist):
         self.ui.playlistUI.clear()
 
@@ -183,21 +203,12 @@ class UIAdapter:
             self._cover_img = pixmap
 
             self._update_cover()
-            self._set_pixmap(album_ui.cover, pixmap)
+            util.set_pixmap(album_ui.cover, pixmap)
 
         self._update_track(self.playlist.current_track())
 
     def _update_cover(self):
-        self._set_pixmap(self.ui.plCover, self._cover_img)
-
-    def _set_pixmap(self, label, pixmap):
-        if pixmap:
-            h = label.height() - 5
-            w = label.width() - 5
-            scaled = pixmap.scaled(w, h, Qt.KeepAspectRatio, Qt.SmoothTransformation)
-            label.setPixmap(scaled)
-        else:
-            label.setPixmap(None)
+        util.set_pixmap(self.ui.plCover, self._cover_img)
 
     def _add_list_item(self, widget):
         item = QListWidgetItem(self.ui.playlistUI)
