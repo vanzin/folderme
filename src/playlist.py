@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: BSD-2-Clause
 import media
 import util
+from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtWidgets import (
     QListWidgetItem,
@@ -74,19 +75,19 @@ class Playlist(util.ConfigObj, media.Listener, util.EventSource):
     def next(self):
         self.stop()
 
-        album = self.albums[0]
-        if self.track_idx < len(album.tracks) - 1:
-            self.track_idx += 1
-            self.playpause()
-            return
+        while True:
+            album = self.albums[0]
+            if self.track_idx < len(album.tracks) - 1:
+                self.track_idx += 1
+                if album.tracks[self.track_idx].skip:
+                    continue
+                self.playpause()
+                return
 
-        del self.albums[0]
-        if self.albums:
-            self.track_idx = 0
-            self.playpause()
-            self.fire_event(Listener.playlist_changed, self)
-        else:
-            self.fire_event(Listener.playlist_ended, self)
+            del self.albums[0]
+            if not self.albums:
+                self.fire_event(Listener.playlist_ended, self)
+                return
 
     def prev(self):
         self.stop()
@@ -159,6 +160,11 @@ class TrackUI(QWidget):
             pixmap.load(util.icon("empty.png"))
         util.set_pixmap(self.lPlaying, pixmap)
 
+    def update(self):
+        font = self.lTitle.font()
+        font.setItalic(self.track.skip)
+        self.lTitle.setFont(font)
+
 
 class UIAdapter:
     def __init__(self, ui, playlist):
@@ -174,6 +180,9 @@ class UIAdapter:
             self._update_track(track)
 
         self.ui.playlistUI.itemDoubleClicked.connect(self._play_item)
+
+        self._playlist_released_key = self.ui.playlistUI.keyReleaseEvent
+        self.ui.playlistUI.keyReleaseEvent = self._handle_key_released
 
     def track_playing(self, player):
         self._update_track(self.playlist.current_track())
@@ -191,12 +200,7 @@ class UIAdapter:
         self.ui.plArtist.setText(track.info.artist)
         self.ui.plAlbum.setText(track.info.album)
 
-        idx = 0
-        for t in self.playlist.albums[0].tracks:
-            idx += 1
-            if t is track:
-                break
-
+        idx = track.index + 1
         for i in range(self.ui.playlistUI.count()):
             item = self.ui.playlistUI.item(i)
             widget = self.ui.playlistUI.itemWidget(item)
@@ -247,3 +251,21 @@ class UIAdapter:
     def _play_item(self, item):
         track_ui = self.ui.playlistUI.itemWidget(item)
         self.ui.playlist.play(track_ui.track)
+
+    def _handle_key_released(self, event):
+        if event.key() == Qt.Key_Delete:
+            self._skip_selection(True)
+        elif event.key() == Qt.Key_Plus:
+            self._skip_selection(False)
+        else:
+            self._playlist_released_key(event)
+
+    def _skip_selection(self, skip):
+        for item in self.ui.playlistUI.selectedItems():
+            widget = self.ui.playlistUI.itemWidget(item)
+            if isinstance(widget, Album):
+                if skip:
+                    print("TODO: skip album")
+            else:
+                widget.track.skip = skip
+                widget.update()

@@ -46,11 +46,10 @@ class Player(util.EventSource):
 
     def play(self, track=None):
         if track:
-            if self.is_playing():
-                self.stop()
             print(f"Playing track {track.path}")
             self._player.setMedia(QMediaContent(QUrl("file:" + track.path)))
         self._player.play()
+        self.fire_event(Listener.track_playing, self)
 
     def pause(self):
         if self.is_playing():
