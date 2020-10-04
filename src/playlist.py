@@ -45,6 +45,7 @@ class Playlist(util.ConfigObj, media.Listener, util.EventSource):
         self.track_idx = 0
         self._player = media.Player()
         self._player.add_listener(self)
+        self._inhibity_play = False
 
     def playpause(self):
         if self._player.is_playing():
@@ -62,15 +63,24 @@ class Playlist(util.ConfigObj, media.Listener, util.EventSource):
         self.play(self.albums[0].tracks[self.track_idx])
 
     def play(self, track):
-        self.track_idx = track.index
-        self._player.play(track=track.info)
-        self.fire_event(Listener.playlist_playing, self)
+        if not self._inhibity_play:
+            self.track_idx = track.index
+            self._player.play(track=track.info)
+            self.fire_event(Listener.playlist_playing, self)
 
     def is_playing(self):
         return self._player.is_playing()
 
     def stop(self):
         self._player.stop()
+
+    def stop_after(self, track):
+        new_value = not track.stop_after
+        for a in self.albums:
+            for t in a.tracks:
+                t.stop_after = False
+        track.stop_after = new_value
+        self.fire_event(Listener.playlist_changed, self)
 
     def next(self):
         self.stop()
@@ -117,14 +127,18 @@ class Playlist(util.ConfigObj, media.Listener, util.EventSource):
         self._player.add_listener(l)
 
     def track_ended(self, player):
+        self.stop()
+
         track = self.current_track()
         if not track.stop_after:
             self.next()
             return
 
-        self.stop()
-        if self.track_idx == len(album.tracks) - 1:
+        if self.track_idx == len(self.albums[0].tracks) - 1:
+            del self.albums[0]
+            self._inhibity_play = True
             self.fire_event(Listener.playlist_ended, self)
+            self._inhibity_play = False
 
     def init_ui(self, ui):
         adapter = UIAdapter(ui, self)
@@ -151,6 +165,13 @@ class TrackUI(QWidget):
         self.lTitle.setText(f"{info.trackno} - {info.title}")
         self.lDuration.setText(util.ms_to_text(info.duration_ms))
         self.set_playing(False)
+
+        pixmap = QPixmap()
+        if track.stop_after:
+            pixmap.load(util.icon("stop.png"))
+        else:
+            pixmap.load(util.icon("empty.png"))
+        util.set_pixmap(self.lStopAfter, pixmap)
 
     def set_playing(self, playing):
         pixmap = QPixmap()
@@ -257,6 +278,8 @@ class UIAdapter:
             self._skip_selection(True)
         elif event.key() == Qt.Key_Plus:
             self._skip_selection(False)
+        elif event.key() == Qt.Key_S:
+            self._set_stop_after()
         else:
             self._playlist_released_key(event)
 
@@ -269,3 +292,14 @@ class UIAdapter:
             else:
                 widget.track.skip = skip
                 widget.update()
+
+    def _set_stop_after(self):
+        items = self.ui.playlistUI.selectedItems()
+        if len(items) != 1:
+            return
+
+        widget = self.ui.playlistUI.itemWidget(items[0])
+        if not isinstance(widget, TrackUI):
+            return
+
+        self.playlist.stop_after(widget.track)

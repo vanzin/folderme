@@ -62,6 +62,12 @@ class Server(dbus.service.Object):
     def prev(self):
         self.ui.playlist.prev()
 
+    @dbus.service.method(
+        dbus_interface=REMOTE_CONTROL_IFACE, in_signature="", out_signature=""
+    )
+    def stop_after_track(self):
+        self.ui.playlist.stop_after(self.ui.playlist.current_track())
+
 
 def send(cmd):
     bus = dbus.SessionBus()

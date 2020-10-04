@@ -10,7 +10,7 @@ Icon=/usr/share/folderme/icons/folderme.png
 Terminal=false
 Categories=AudioVideo;Player;Qt;Audio;
 StartupNotify=false
-Actions=PlayPause;Previous;Next;Stop
+Actions=PlayPause;Previous;Next;Stop;StopAfterTrack
 
 [Desktop Action PlayPause]
 Name=Play/Pause
@@ -27,3 +27,7 @@ Exec=folderme --remote next
 [Desktop Action Stop]
 Name=Stop
 Exec=folderme --remote stop
+
+[Desktop Action StopAfterTrack]
+Name=Stop After Track
+Exec=folderme --remote stop_after_track
