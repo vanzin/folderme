@@ -22,16 +22,19 @@ class Listener:
 
 
 class Track:
-    def __init__(self, track):
+    def __init__(self, track, index):
         self.info = track
         self.skip = False
         self.stop_after = False
+        self.index = index
 
 
 class Album:
     def __init__(self, album):
         self.info = album
-        self.tracks = [Track(t) for t in album.tracks]
+        self.tracks = []
+        for i in range(len(album.tracks)):
+            self.tracks.append(Track(album.tracks[i], i))
 
 
 class Playlist(util.ConfigObj, media.Listener, util.EventSource):
@@ -55,7 +58,10 @@ class Playlist(util.ConfigObj, media.Listener, util.EventSource):
             print("no albums")
             return
 
-        track = self.albums[0].tracks[self.track_idx]
+        self.play(self.albums[0].tracks[self.track_idx])
+
+    def play(self, track):
+        self.track_idx = track.index
         self._player.play(track=track.info)
         self.fire_event(Listener.playlist_playing, self)
 
@@ -138,6 +144,7 @@ class TrackUI(QWidget):
     def __init__(self, parent, track):
         QWidget.__init__(self, parent)
         util.init_ui(self, "track.ui")
+        self.track = track
 
         info = track.info
         self.lTitle.setText(f"{info.trackno} - {info.title}")
@@ -165,6 +172,8 @@ class UIAdapter:
         track = playlist.current_track()
         if track:
             self._update_track(track)
+
+        self.ui.playlistUI.itemDoubleClicked.connect(self._play_item)
 
     def track_playing(self, player):
         self._update_track(self.playlist.current_track())
@@ -234,3 +243,7 @@ class UIAdapter:
         item.setSizeHint(widget.sizeHint())
         self.ui.playlistUI.addItem(item)
         self.ui.playlistUI.setItemWidget(item, widget)
+
+    def _play_item(self, item):
+        track_ui = self.ui.playlistUI.itemWidget(item)
+        self.ui.playlist.play(track_ui.track)
