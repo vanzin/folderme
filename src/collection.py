@@ -12,6 +12,8 @@ class Track(util.ConfigObj):
         self.artist = None
         self.album = None
         self.title = None
+        self.duration_ms = 0
+        self.trackno = -1
 
     def init(self, path):
         mf = mutagen.File(path, easy=True)
@@ -22,12 +24,18 @@ class Track(util.ConfigObj):
             raise Exception(f"Don't know how to handle {type(mf.tags)}")
 
         self.path = path
-        self._read_id3(mf.tags)
+        self._read_id3(mf, mf.tags)
 
-    def _read_id3(self, tags):
+    def _read_id3(self, f, tags):
         self.artist = tags["artist"][0]
         self.album = tags["album"][0]
         self.title = tags["title"][0]
+
+        # Some tracks show up as "x/y" and some as just "x". Don't know why.
+        parts = tags["tracknumber"][0].split("/")
+        self.trackno = int(parts[0])
+
+        self.duration_ms = int(f.info.length * 1000)
 
     def cover_art(self):
         tags = ID3(self.path)

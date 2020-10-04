@@ -58,11 +58,11 @@ class TrayIcon(QSystemTrayIcon, playlist.Listener, media.Listener):
 
     def track_playing(self, player):
         track = self.ui.playlist.current_track()
-        self.setToolTip(f"Playing: {track.artist} - {track.title}")
+        self.setToolTip(f"Playing: {track.info.artist} - {track.info.title}")
 
     def track_paused(self, player):
         track = self.ui.playlist.current_track()
-        self.setToolTip(f"Paused: {track.artist} - {track.title}")
+        self.setToolTip(f"Paused: {track.info.artist} - {track.info.title}")
 
     def track_stopped(self, player):
         self.setToolTip(f"Stopped")

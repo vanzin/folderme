@@ -21,6 +21,19 @@ class Listener:
         pass
 
 
+class Track:
+    def __init__(self, track):
+        self.info = track
+        self.skip = False
+        self.stop_after = False
+
+
+class Album:
+    def __init__(self, album):
+        self.info = album
+        self.tracks = [Track(t) for t in album.tracks]
+
+
 class Playlist(util.ConfigObj, media.Listener, util.EventSource):
     def __init__(self):
         util.EventSource.__init__(self)
@@ -43,8 +56,7 @@ class Playlist(util.ConfigObj, media.Listener, util.EventSource):
             return
 
         track = self.albums[0].tracks[self.track_idx]
-        print(f"start {track}")
-        self._player.play(track=track)
+        self._player.play(track=track.info)
         self.fire_event(Listener.playlist_playing, self)
 
     def is_playing(self):
@@ -77,11 +89,11 @@ class Playlist(util.ConfigObj, media.Listener, util.EventSource):
         self.playpause()
 
     def add(self, album):
-        self.albums.append(album)
+        self.albums.append(Album(album))
 
     def replace(self, album, play=False):
         play = play or self.is_playing()
-        self.albums = [album]
+        self.albums = [Album(album)]
         self.track_idx = 0
         self.stop()
         self.fire_event(Listener.playlist_changed, self)
@@ -98,7 +110,14 @@ class Playlist(util.ConfigObj, media.Listener, util.EventSource):
         self._player.add_listener(l)
 
     def track_ended(self, player):
-        self.next()
+        track = self.current_track()
+        if not track.stop_after:
+            self.next()
+            return
+
+        self.stop()
+        if self.track_idx == len(album.tracks) - 1:
+            self.fire_event(Listener.playlist_ended, self)
 
     def init_ui(self, ui):
         adapter = UIAdapter(ui, self)
@@ -111,8 +130,8 @@ class AlbumUI(QWidget):
     def __init__(self, parent, album):
         QWidget.__init__(self, parent)
         util.init_ui(self, "album.ui")
-        self.lArtist.setText(album.artist)
-        self.lAlbum.setText(album.title)
+        self.lArtist.setText(album.info.artist)
+        self.lAlbum.setText(album.info.title)
 
 
 class TrackUI(QWidget):
@@ -120,13 +139,9 @@ class TrackUI(QWidget):
         QWidget.__init__(self, parent)
         util.init_ui(self, "track.ui")
 
-        info, tags = track.info()
-        duration = int(info.length * 1000)
-        title = tags["title"][0]
-        trackno = tags["tracknumber"][0]
-
-        self.lTitle.setText(f"{trackno} - {title}")
-        self.lDuration.setText(util.ms_to_text(duration))
+        info = track.info
+        self.lTitle.setText(f"{info.trackno} - {info.title}")
+        self.lDuration.setText(util.ms_to_text(info.duration_ms))
         self.set_playing(False)
 
     def set_playing(self, playing):
@@ -164,8 +179,8 @@ class UIAdapter:
         util.save_config(self.playlist)
 
     def _update_track(self, track):
-        self.ui.plArtist.setText(track.artist)
-        self.ui.plAlbum.setText(track.album)
+        self.ui.plArtist.setText(track.info.artist)
+        self.ui.plAlbum.setText(track.info.album)
 
         idx = 0
         for t in self.playlist.albums[0].tracks:
@@ -182,6 +197,7 @@ class UIAdapter:
     def _update_playlist(self, playlist):
         self.ui.playlistUI.clear()
 
+        first = True
         for a in playlist.albums:
             album_ui = AlbumUI(self.ui.playlistUI, a)
 
@@ -192,7 +208,7 @@ class UIAdapter:
                 track_ui = TrackUI(self.ui.playlistUI, t)
                 self._add_list_item(track_ui)
                 if not cover:
-                    cover = t.cover_art()
+                    cover = t.info.cover_art()
 
             pixmap = QPixmap()
             if cover:
@@ -202,13 +218,16 @@ class UIAdapter:
 
             self._cover_img = pixmap
 
-            self._update_cover()
+            if first:
+                self._update_cover()
+                first = False
             util.set_pixmap(album_ui.cover, pixmap)
 
         self._update_track(self.playlist.current_track())
 
     def _update_cover(self):
-        util.set_pixmap(self.ui.plCover, self._cover_img)
+        if self._cover_img:
+            util.set_pixmap(self.ui.plCover, self._cover_img)
 
     def _add_list_item(self, widget):
         item = QListWidgetItem(self.ui.playlistUI)
