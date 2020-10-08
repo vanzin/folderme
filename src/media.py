@@ -31,6 +31,7 @@ class Player(util.EventSource):
         self._player = QMediaPlayer(QApplication.instance())
         self._player.mediaStatusChanged.connect(self._handleStatusChange)
         self._player.stateChanged.connect(self._handleStateChange)
+        self._track = None
 
     def _handleStatusChange(self, status):
         if status == self._player.EndOfMedia:
@@ -48,8 +49,9 @@ class Player(util.EventSource):
         if track:
             print(f"Playing track {track.path}")
             self._player.setMedia(QMediaContent(QUrl("file:" + track.path)))
-        self._player.play()
-        self.fire_event(Listener.track_playing, self)
+            self._track = track
+        if self._track:
+            self._player.play()
 
     def pause(self):
         if self.is_playing():
@@ -76,6 +78,9 @@ class Player(util.EventSource):
 
     def position(self):
         return self._player.position()
+
+    def track(self):
+        return self._track
 
 
 class UIAdapter(Listener):
