@@ -188,6 +188,13 @@
        </spacer>
       </item>
       <item>
+       <widget class="QPushButton" name="osd">
+        <property name="text">
+         <string>OSD</string>
+        </property>
+       </widget>
+      </item>
+      <item>
        <widget class="QPushButton" name="quit">
         <property name="focusPolicy">
          <enum>Qt::TabFocus</enum>

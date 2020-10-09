@@ -6,6 +6,7 @@ import collection
 import ipc
 import lastfm
 import media
+import osd
 import playlist
 import randomizer
 import sys
@@ -96,6 +97,7 @@ class MainWindow(QMainWindow, util.EventSource, util.StatefulUI):
         self.previous.clicked.connect(self.playlist.prev)
         self.newAlbum.clicked.connect(self.driver.pick_next)
         self.stop.clicked.connect(self.playlist.stop)
+        self.osd.clicked.connect(self.show_osd)
 
         self.scrobbler = lastfm.get_scrobbler()
         if self.scrobbler:
@@ -126,6 +128,9 @@ class MainWindow(QMainWindow, util.EventSource, util.StatefulUI):
     def closeEvent(self, e):
         self.save_ui()
         QMainWindow.closeEvent(self, e)
+
+    def show_osd(self):
+        osd.OSD(self.playlist.player())
 
 
 def start(args):

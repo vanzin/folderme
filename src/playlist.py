@@ -146,6 +146,9 @@ class Playlist(util.ConfigObj, media.Listener, util.EventSource):
         ui.add_listener(adapter)
         self._player.init_ui(ui)
 
+    def player(self):
+        return self._player
+
 
 class AlbumUI(QWidget):
     def __init__(self, parent, album):
