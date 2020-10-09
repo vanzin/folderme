@@ -76,11 +76,17 @@ class Playlist(util.ConfigObj, media.Listener, util.EventSource):
 
     def stop_after(self, track):
         new_value = not track.stop_after
+        valid = True
         for a in self.albums:
+            idx = 0
             for t in a.tracks:
                 t.stop_after = False
+                if new_value and t is track and idx < self.track_idx:
+                    # Stop after for a previous track does not make sense. Ignore the
+                    # call.
+                    new_value = False
+                idx += 1
         track.stop_after = new_value
-        self.fire_event(Listener.playlist_changed, self)
 
     def next(self):
         self.stop()
@@ -141,6 +147,12 @@ class Playlist(util.ConfigObj, media.Listener, util.EventSource):
             self._inhibity_play = False
 
     def init_ui(self, ui):
+        if self.albums:
+            first = self.albums[0]
+            for i in range(len(first.tracks)):
+                if first.tracks[i].stop_after and i != self.track_idx:
+                    first.tracks[i].stop_after = False
+
         adapter = UIAdapter(ui, self)
         self.add_listener(adapter)
         ui.add_listener(adapter)
@@ -188,6 +200,7 @@ class TrackUI(QWidget):
         font = self.lTitle.font()
         font.setItalic(self.track.skip)
         self.lTitle.setFont(font)
+        self.repaint()
 
 
 class UIAdapter:
@@ -197,7 +210,7 @@ class UIAdapter:
         self._cover_img = None
 
         if playlist.albums:
-            self._update_playlist(self.playlist)
+            self._update_playlist()
 
         track = playlist.current_track()
         if track:
@@ -212,7 +225,7 @@ class UIAdapter:
         self._update_track(self.playlist.current_track())
 
     def playlist_changed(self, playlist):
-        self._update_playlist(playlist)
+        self._update_playlist()
 
     def ui_resized(self, widget):
         self._update_cover()
@@ -231,11 +244,11 @@ class UIAdapter:
             if isinstance(widget, TrackUI):
                 widget.set_playing(i == idx)
 
-    def _update_playlist(self, playlist):
+    def _update_playlist(self):
         self.ui.playlistUI.clear()
 
         first = True
-        for a in playlist.albums:
+        for a in self.playlist.albums:
             album_ui = AlbumUI(self.ui.playlistUI, a)
 
             self._add_list_item(album_ui)
@@ -261,6 +274,7 @@ class UIAdapter:
             util.set_pixmap(album_ui.cover, pixmap)
 
         self._update_track(self.playlist.current_track())
+        self.ui.playlistUI.repaint()
 
     def _update_cover(self):
         if self._cover_img:
@@ -306,3 +320,4 @@ class UIAdapter:
             return
 
         self.playlist.stop_after(widget.track)
+        self._update_playlist()
