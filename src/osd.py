@@ -6,17 +6,30 @@ from PyQt5.QtWidgets import QMainWindow
 
 
 class OSD(QMainWindow):
-    INSTANCE = None
-
     def __init__(self, player):
         QMainWindow.__init__(self)
         util.init_ui(self, "osd.ui")
+        player.add_listener(self)
+
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.Tool)
         self.setWindowOpacity(0.80)
+        self.timer = None
 
-        if OSD.INSTANCE:
-            OSD.INSTANCE.close()
-            OSD.INSTANCE = None
+    def track_playing(self, player):
+        self._show(player)
+
+    def track_paused(self, player):
+        self._show(player)
+
+    def track_stopped(self, player):
+        self._show(player)
+
+    def _show(self, player):
+        if self.timer:
+            self.timer.stop()
+
+        if self.isVisible():
+            self.close()
 
         status = "Stopped"
         if player.is_playing():
@@ -52,10 +65,5 @@ class OSD(QMainWindow):
         self.move(QPoint(x, y))
 
         self.status.setText(status)
-        QTimer.singleShot(2000, self._close)
-        OSD.INSTANCE = self
+        self.timer = QTimer.singleShot(2000, self.close)
         self.show()
-
-    def _close(self):
-        OSD.INSTANCE = None
-        self.close()

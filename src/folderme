@@ -89,6 +89,7 @@ class MainWindow(QMainWindow, util.EventSource, util.StatefulUI):
 
         self.playlist = util.load_config(playlist.Playlist)
         self.playlist.init_ui(self)
+        self.osd = osd.OSD(self.playlist.player())
 
         self.driver = randomizer.Randomizer(self.collection, self.playlist)
 

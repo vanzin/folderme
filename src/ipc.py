@@ -73,8 +73,7 @@ class Server(dbus.service.Object):
         dbus_interface=REMOTE_CONTROL_IFACE, in_signature="", out_signature=""
     )
     def osd(self):
-        player = self.ui.playlist.player()
-        osd.OSD(player)
+        player = self.ui.osd.show(self.ui.playlist.player())
 
 
 def send(cmd):
