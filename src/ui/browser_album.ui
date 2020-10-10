@@ -79,7 +79,7 @@
     </widget>
    </item>
    <item>
-    <widget class="QLabel" name="year">
+    <widget class="QLabel" name="lYear">
      <property name="text">
       <string>Year</string>
      </property>
