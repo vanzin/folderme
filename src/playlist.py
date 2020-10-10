@@ -248,6 +248,8 @@ class UIAdapter:
             if isinstance(widget, TrackUI):
                 widget.set_playing(i == idx)
 
+        self.ui.playlistUI.repaint()
+
     def _update_playlist(self):
         self.ui.playlistUI.clear()
 

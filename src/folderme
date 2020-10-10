@@ -71,7 +71,7 @@ class TrayIcon(QSystemTrayIcon, playlist.Listener, media.Listener):
 
 
 class MainWindow(QMainWindow, util.EventSource, util.StatefulUI):
-    def __init__(self):
+    def __init__(self, args):
         QMainWindow.__init__(self)
         util.EventSource.__init__(self)
         util.StatefulUI.__init__(self, "main")
@@ -99,9 +99,11 @@ class MainWindow(QMainWindow, util.EventSource, util.StatefulUI):
         self.stop.clicked.connect(self.playlist.stop)
         self.osd.clicked.connect(self.show_osd)
 
-        self.scrobbler = lastfm.get_scrobbler()
-        if self.scrobbler:
-            self.playlist.add_listener(self.scrobbler)
+        self.scrobbler = None
+        if not args.no_lastfm:
+            self.scrobbler = lastfm.get_scrobbler()
+            if self.scrobbler:
+                self.playlist.add_listener(self.scrobbler)
 
         self.playlistUI.setFocus()
 
@@ -137,7 +139,7 @@ def start(args):
     app = QApplication(sys.argv)
     app.setWindowIcon(QIcon(util.icon("folderme.png")))
 
-    mainUI = MainWindow()
+    mainUI = MainWindow(args)
 
     if not args.no_dbus:
         server = ipc.Server(mainUI)
@@ -164,6 +166,12 @@ def main(argv):
         action="store_true",
         default=False,
         help="do not start dbus service",
+    )
+    parser.add_argument(
+        "--no-lastfm",
+        action="store_true",
+        default=False,
+        help="do not scrobble to last.fm",
     )
     args = parser.parse_args(argv[1:])
 
