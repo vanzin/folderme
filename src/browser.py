@@ -35,6 +35,7 @@ class BrowseDialog(QDialog):
         self.playlist = playlist
         self._scanning = False
         self._populate_artists()
+        self.lScanState.setVisible(False)
         util.restore_ui(self, "browser")
 
     def closeEvent(self, e):
@@ -109,8 +110,20 @@ class BrowseDialog(QDialog):
             self.albums.setItemWidget(i, ui)
 
     def _rescan(self):
-        self.collection.scan()
+        self.lScanState.setText("Scanning...")
+        self.lScanState.setVisible(True)
+        self.bRescan.setEnabled(False)
+        self.bClose.setEnabled(False)
+        self.collection.scan(self)
+
+    def scan_progress(self, path):
+        self.lScanState.setText(f"Scanning {path}...")
+
+    def scan_done(self):
         util.save_config(self.collection)
         self.artists.clear()
         self.albums.clear()
         self._populate_artists()
+        self.bRescan.setEnabled(True)
+        self.bClose.setEnabled(True)
+        self.lScanState.setVisible(False)

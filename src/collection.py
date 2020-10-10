@@ -4,6 +4,7 @@ import os
 import util
 from mutagen.easyid3 import EasyID3
 from mutagen.id3 import ID3
+from PyQt5.QtCore import QObject, QThread, pyqtSignal
 
 METADATA_VERSION = 2
 
@@ -116,24 +117,35 @@ class Album(util.ConfigObj):
         return "Album({})".format(str(self.__dict__))
 
 
-class Collection(util.ConfigObj, util.EventSource):
-    def __init__(self):
-        util.EventSource.__init__(self)
-        self.albums = []
-        self.locations = ["/media/common/music"]
+class ScanListener:
+    def scan_progress(self, path):
+        pass
 
-    def scan(self):
+    def scan_done(self):
+        pass
+
+
+class Scanner(QThread, util.EventSource):
+    progress = pyqtSignal(str)
+    done = pyqtSignal()
+
+    def __init__(self, collection):
+        QThread.__init__(self)
+        util.EventSource.__init__(self)
+        self.collection = collection
+
+    def run(self):
         albums = []
-        by_path = {x.path: x for x in self.albums}
-        for path in self.locations:
+        by_path = {x.path: x for x in self.collection.albums}
+        for path in self.collection.locations:
             for root, dirs, files, dirfd in os.fwalk(path):
+                self.progress.emit(root)
                 if files:
                     a = by_path.get(root)
                     if a and a.version == METADATA_VERSION:
                         mtime = min(os.stat(f, dir_fd=dirfd).st_mtime for f in files)
                         if mtime <= a.mtime:
                             albums.append(a)
-                            print(f"album {a.title} up to date")
                             continue
 
                     try:
@@ -144,5 +156,28 @@ class Collection(util.ConfigObj, util.EventSource):
                     except:
                         pass
 
-        self.albums = albums
+        self.collection.albums = albums
+        self.done.emit()
+
+
+class Collection(util.ConfigObj, util.EventSource):
+    def __init__(self):
+        util.EventSource.__init__(self)
+        self.albums = []
+        self.locations = ["/media/common/music"]
+        self._scanner = None
+
+    def scan(self, listener=None):
+        if self._scanner:
+            raise Exception("Scanning already in progress.")
+
+        self._scanner = Scanner(self)
+        self._scanner.done.connect(self.scan_done)
+        if listener:
+            self._scanner.progress.connect(listener.scan_progress)
+            self._scanner.done.connect(listener.scan_done)
+        self._scanner.start()
+
+    def scan_done(self):
+        self._scanner = None
         self.fire_event(Listener.collection_changed, self)
