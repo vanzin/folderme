@@ -89,8 +89,6 @@ class Playlist(util.ConfigObj, media.Listener, util.EventSource):
         track.stop_after = new_value
 
     def next(self):
-        self.stop()
-
         while True:
             album = self.albums[0]
             if self.track_idx < len(album.tracks) - 1:
@@ -132,11 +130,10 @@ class Playlist(util.ConfigObj, media.Listener, util.EventSource):
         util.EventSource.add_listener(self, l)
         self._player.add_listener(l)
 
-    def track_ended(self, player):
-        self.stop()
-
+    def track_ended(self, _):
         track = self.current_track()
         if not track.stop_after:
+            self.stop()
             self.next()
             return
 
@@ -248,7 +245,7 @@ class UIAdapter:
         self._playlist_released_key = self.ui.playlistUI.keyReleaseEvent
         self.ui.playlistUI.keyReleaseEvent = self._handle_key_released
 
-    def track_playing(self, player):
+    def track_playing(self, track):
         self._update_track(self.playlist.current_track())
 
     def playlist_changed(self, playlist):

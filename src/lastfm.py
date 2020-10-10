@@ -50,11 +50,12 @@ class ScrobbleCache(util.ConfigObj):
 
 
 class Scrobbler(media.Listener):
-    def __init__(self, session_key):
+    def __init__(self, session_key, enabled):
         self.lock = threading.Lock()
         self.event = threading.Event()
         self.cache = util.load_config(ScrobbleCache)
         self.session_key = session_key
+        self.enabled = enabled
 
         self._playback_start = None
         self.running = True
@@ -101,7 +102,8 @@ class Scrobbler(media.Listener):
         info["method"] = method
 
         print(f"last.fm: {method} {s.artist} / {s.title}")
-        _post(**info)
+        if self.enabled:
+            _post(**info)
 
     def _enqueue(self, track, is_ended):
         s = Scrobble()
@@ -114,13 +116,13 @@ class Scrobbler(media.Listener):
             self.cache.add(s)
         self.event.set()
 
-    def track_playing(self, player):
+    def track_playing(self, track):
         if not self._playback_start:
             self._playback_start = int(time.time())
-            self._enqueue(player.track(), False)
+            self._enqueue(track, False)
 
-    def track_ended(self, player):
-        self._enqueue(player.track(), True)
+    def track_ended(self, track):
+        self._enqueue(track, True)
         self._playback_start = None
 
     def shutdown(self):
@@ -130,9 +132,9 @@ class Scrobbler(media.Listener):
         util.save_config(self.cache)
 
 
-def get_scrobbler():
+def get_scrobbler(enabled):
     session_key = util.SETTINGS.value(f"{SETTINGS_GRP}/{SETTINGS_SESSION_KEY}")
-    return Scrobbler(session_key) if session_key else None
+    return Scrobbler(session_key, enabled) if session_key else None
 
 
 def sign(params):

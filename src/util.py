@@ -31,6 +31,28 @@ class EventSource:
     firing.
     """
 
+    QUEUE = []
+
+    @staticmethod
+    def _fire(src, handler, args):
+        """
+        Enqueue an event for firing. If this is the first event in the queue, this
+        call will block until the queue is empty (so that events are delivered in
+        the order they were fired).
+        """
+        owner = len(EventSource.QUEUE) == 0
+        EventSource.QUEUE.append((src, handler, args))
+        if not owner:
+            return
+
+        while EventSource.QUEUE:
+            s, h, a = EventSource.QUEUE[0]
+            for l in s._listeners:
+                m = getattr(l, h.__name__, None)
+                if m:
+                    m(*a)
+            del EventSource.QUEUE[0]
+
     def __init__(self):
         self._listeners = []
 
@@ -38,10 +60,7 @@ class EventSource:
         self._listeners.append(l)
 
     def fire_event(self, handler, *args):
-        for l in self._listeners:
-            m = getattr(l, handler.__name__, None)
-            if m:
-                m(*args)
+        EventSource._fire(self, handler, args)
 
 
 def init_ui(widget, src):

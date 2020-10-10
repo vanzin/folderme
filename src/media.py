@@ -8,16 +8,16 @@ from PyQt5.QtWidgets import QApplication
 
 
 class Listener:
-    def track_paused(self, player):
+    def track_paused(self, track):
         pass
 
-    def track_playing(self, player):
+    def track_playing(self, track):
         pass
 
-    def track_stopped(self, player):
+    def track_stopped(self, track):
         pass
 
-    def track_ended(self, player):
+    def track_ended(self, track):
         pass
 
 
@@ -35,22 +35,25 @@ class Player(util.EventSource):
 
     def _handleStatusChange(self, status):
         if status == self._player.EndOfMedia:
-            self.fire_event(Listener.track_ended, self)
+            self.fire_event(Listener.track_ended, self._track)
 
     def _handleStateChange(self, state):
         if state == self._player.StoppedState:
-            self.fire_event(Listener.track_stopped, self)
+            self.fire_event(Listener.track_stopped, self._track)
         elif state == self._player.PlayingState:
-            self.fire_event(Listener.track_playing, self)
+            self.fire_event(Listener.track_playing, self._track)
         elif state == self._player.PausedState:
-            self.fire_event(Listener.track_paused, self)
+            self.fire_event(Listener.track_paused, self._track)
 
     def play(self, track=None):
         if track:
             print(f"Playing track {track.path}")
             self.set_track(track)
+        fire_event = self.is_playing()
         if self._track:
             self._player.play()
+        if fire_event:
+            self.fire_event(Listener.track_playing, self._track)
 
     def pause(self):
         if self.is_playing():
@@ -114,13 +117,13 @@ class UIAdapter(Listener):
         self.ui.tElapsed.setText(util.ms_to_text(position))
         self.ui.tPosition.setSliderPosition(position)
 
-    def track_stopped(self, player):
+    def track_stopped(self, track):
         self._update_position(0)
 
-    def track_ended(self, player):
+    def track_ended(self, track):
         self.duration = 0
 
-    def track_playing(self, player):
+    def track_playing(self, track):
         self.ui.tPosition.setMinimum(0)
         self._update_position(0)
 

@@ -9,35 +9,38 @@ class OSD(QMainWindow):
     def __init__(self, player):
         QMainWindow.__init__(self)
         util.init_ui(self, "osd.ui")
-        player.add_listener(self)
 
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.Tool)
         self.setWindowOpacity(0.80)
         self.timer = None
+        self.player = player
+        player.add_listener(self)
 
-    def track_playing(self, player):
-        self._show(player)
+    def track_playing(self, track):
+        self.show_osd(track)
 
-    def track_paused(self, player):
-        self._show(player)
+    def track_paused(self, track):
+        self.show_osd(track)
 
-    def track_stopped(self, player):
-        self._show(player)
+    def track_stopped(self, track):
+        self.show_osd(track)
 
-    def _show(self, player):
+    def show_osd(self, track):
         if self.timer:
             self.timer.stop()
 
         if self.isVisible():
             self.close()
 
+        if not track:
+            track = self.player.track()
+
         status = "Stopped"
-        if player.is_playing():
+        if self.player.is_playing():
             status = "Playing"
-        elif player.is_paused():
+        elif self.player.is_paused():
             status = "Paused"
 
-        track = player.track()
         if not track:
             pixmap = QPixmap()
             pixmap.load(util.icon("blank.jpg"))
