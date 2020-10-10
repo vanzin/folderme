@@ -135,7 +135,7 @@ class MainWindow(QMainWindow, util.EventSource, collection.Listener):
         QMainWindow.closeEvent(self, e)
 
     def show_browser(self):
-        browser.BrowseDialog(self, self.collection).show()
+        browser.BrowseDialog(self, self.collection, self.playlist).show()
 
     def collection_changed(self, collection):
         self.repaint()

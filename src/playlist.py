@@ -165,11 +165,34 @@ class Playlist(util.ConfigObj, media.Listener, util.EventSource):
     def player(self):
         return self._player
 
+    def add_album(self, album):
+        self.albums.append(Album(album))
+        self.fire_event(Listener.playlist_changed, self)
+
+    def remove_album(self, album):
+        stop = False
+        for i in range(len(self.albums)):
+            a = self.albums[i]
+            if a is album:
+                stop = True
+                del self.albums[i]
+                break
+
+        if stop:
+            play = self.is_playing()
+            self.stop()
+            self.track_idx = 0
+            if play:
+                self.playpause()
+
+        self.fire_event(Listener.playlist_changed, self)
+
 
 class AlbumUI(QWidget):
     def __init__(self, parent, album):
         QWidget.__init__(self, parent)
         util.init_ui(self, "album.ui")
+        self.album = album
         self.lArtist.setText(album.info.artist)
         self.lAlbum.setText(album.info.title)
 
@@ -272,11 +295,11 @@ class UIAdapter:
             else:
                 pixmap.load(util.icon("blank.jpg"))
 
-            self._cover_img = pixmap
-
             if first:
+                self._cover_img = pixmap
                 self._update_cover()
                 first = False
+
             util.set_pixmap(album_ui.cover, pixmap)
 
         self._update_track(self.playlist.current_track())
@@ -309,9 +332,9 @@ class UIAdapter:
     def _skip_selection(self, skip):
         for item in self.ui.playlistUI.selectedItems():
             widget = self.ui.playlistUI.itemWidget(item)
-            if isinstance(widget, Album):
+            if isinstance(widget, AlbumUI):
                 if skip:
-                    print("TODO: skip album")
+                    self.playlist.remove_album(widget.album)
             else:
                 widget.track.skip = skip
                 widget.update()

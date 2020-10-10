@@ -25,12 +25,14 @@ class AlbumEntry(QWidget):
 
 
 class BrowseDialog(QDialog):
-    def __init__(self, parent, collection):
+    def __init__(self, parent, collection, playlist):
         QDialog.__init__(self, parent)
         util.init_ui(self, "browser.ui")
         self.bRescan.clicked.connect(self._rescan)
         self.bClose.clicked.connect(self.close)
+        self.albums.itemActivated.connect(self._add_album)
         self.collection = collection
+        self.playlist = playlist
         self._scanning = False
         self._populate_artists()
         util.restore_ui(self, "browser")
@@ -38,6 +40,10 @@ class BrowseDialog(QDialog):
     def closeEvent(self, e):
         util.save_ui(self, "browser")
         QDialog.closeEvent(self, e)
+
+    def _add_album(self, item):
+        e = self.albums.itemWidget(item)
+        self.playlist.add_album(e.album)
 
     def _populate_artists(self):
         self.artists_map = collections.defaultdict(list)
