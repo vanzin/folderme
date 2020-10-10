@@ -5,6 +5,13 @@ import util
 from mutagen.easyid3 import EasyID3
 from mutagen.id3 import ID3
 
+METADATA_VERSION = 2
+
+
+class Listener:
+    def collection_changed(self, collection):
+        pass
+
 
 class Track(util.ConfigObj):
     def __init__(self):
@@ -14,6 +21,7 @@ class Track(util.ConfigObj):
         self.title = None
         self.duration_ms = 0
         self.trackno = -1
+        self.year = -1
 
     def init(self, path):
         mf = mutagen.File(path, easy=True)
@@ -30,6 +38,7 @@ class Track(util.ConfigObj):
         self.artist = tags["artist"][0]
         self.album = tags["album"][0]
         self.title = tags["title"][0]
+        self.year = tags["date"][0]
 
         # Some tracks show up as "x/y" and some as just "x". Don't know why.
         parts = tags["tracknumber"][0].split("/")
@@ -52,10 +61,13 @@ class Track(util.ConfigObj):
 
 class Album(util.ConfigObj):
     def __init__(self):
+        self.path = None
         self.title = None
         self.artist = None
         self.tracks = []
         self.mtime = 0
+        self.year = -1
+        self.version = -1
 
     def init(self, path, files=None):
         self.path = path
@@ -64,6 +76,7 @@ class Album(util.ConfigObj):
         title = None
         mtime = 0
         tracks = []
+        year = -1
 
         if not files:
             files = [
@@ -77,6 +90,7 @@ class Album(util.ConfigObj):
                 raise Exception(f"Inconsistent album info in {path}.")
 
             title = t.album
+            year = t.year
 
             if artist is None:
                 artist = t.artist
@@ -94,23 +108,34 @@ class Album(util.ConfigObj):
         self.title = title
         self.artist = artist
         self.tracks = tracks
+        self.year = year
         self.mtime = mtime
+        self.version = METADATA_VERSION
 
     def __str__(self):
         return "Album({})".format(str(self.__dict__))
 
 
-class Collection(util.ConfigObj):
+class Collection(util.ConfigObj, util.EventSource):
     def __init__(self):
+        util.EventSource.__init__(self)
         self.albums = []
         self.locations = ["/media/common/music"]
 
     def scan(self):
         albums = []
-        tcnt = 0
+        by_path = {x.path: x for x in self.albums}
         for path in self.locations:
-            for root, dirs, files in os.walk(path):
+            for root, dirs, files, dirfd in os.fwalk(path):
                 if files:
+                    a = by_path.get(root)
+                    if a and a.version == METADATA_VERSION:
+                        mtime = min(os.stat(f, dir_fd=dirfd).st_mtime for f in files)
+                        if mtime <= a.mtime:
+                            albums.append(a)
+                            print(f"album {a.title} up to date")
+                            continue
+
                     try:
                         a = Album()
                         a.init(root, files=files)
@@ -120,6 +145,4 @@ class Collection(util.ConfigObj):
                         pass
 
         self.albums = albums
-
-    def random(self):
-        pass
+        self.fire_event(Listener.collection_changed, self)

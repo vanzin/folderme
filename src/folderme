@@ -71,15 +71,15 @@ class TrayIcon(QSystemTrayIcon, playlist.Listener, media.Listener):
         self.setToolTip(f"Stopped")
 
 
-class MainWindow(QMainWindow, util.EventSource, util.StatefulUI):
+class MainWindow(QMainWindow, util.EventSource, collection.Listener):
     def __init__(self, args):
         QMainWindow.__init__(self)
         util.EventSource.__init__(self)
-        util.StatefulUI.__init__(self, "main")
         util.init_ui(self, "main.ui")
-        self.restore_ui()
 
         self.collection = util.load_config(collection.Collection)
+        self.collection.add_listener(self)
+
         print(f"Loaded {len(self.collection.albums)} albums.")
         if not self.collection.albums:
             print("Scanning...")
@@ -108,6 +108,7 @@ class MainWindow(QMainWindow, util.EventSource, util.StatefulUI):
                 self.playlist.add_listener(self.scrobbler)
 
         self.playlistUI.setFocus()
+        util.restore_ui(self, "main")
 
     def handlePlayPause(self):
         if not self.playlist.albums:
@@ -116,7 +117,7 @@ class MainWindow(QMainWindow, util.EventSource, util.StatefulUI):
 
     def handleQuit(self):
         self.fire_event(UIListener.ui_exit)
-        self.save_ui()
+        util.save_ui(self, "main")
         if self.scrobbler:
             self.scrobbler.shutdown()
         QApplication.instance().quit()
@@ -130,11 +131,14 @@ class MainWindow(QMainWindow, util.EventSource, util.StatefulUI):
         self.fire_event(UIListener.ui_resized, self)
 
     def closeEvent(self, e):
-        self.save_ui()
+        util.save_ui(self, "main")
         QMainWindow.closeEvent(self, e)
 
     def show_browser(self):
         browser.BrowseDialog(self, self.collection).show()
+
+    def collection_changed(self, collection):
+        self.repaint()
 
 
 def start(args):

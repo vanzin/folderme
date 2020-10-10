@@ -66,14 +66,14 @@
       </spacer>
      </item>
      <item>
-      <widget class="QPushButton" name="rescan">
+      <widget class="QPushButton" name="bRescan">
        <property name="text">
         <string>Rescan</string>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="close">
+      <widget class="QPushButton" name="bClose">
        <property name="text">
         <string>Close</string>
        </property>

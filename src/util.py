@@ -44,31 +44,25 @@ class EventSource:
                 m(*args)
 
 
-class StatefulUI:
-    """
-    Mix-in to help storing and restoring UI state.
-    """
-
-    def __init__(self, name):
-        self._ui_name = name
-
-    def restore_ui(self):
-        data = SETTINGS.value(f"{self._ui_name}/geometry")
-        if data:
-            self.restoreGeometry(data)
-
-        data = SETTINGS.value(f"{self._ui_name}/windowState")
-        if data:
-            self.restoreState(data)
-
-    def save_ui(self):
-        SETTINGS.setValue(f"{self._ui_name}/geometry", self.saveGeometry())
-        SETTINGS.setValue(f"{self._ui_name}/windowState", self.saveState())
-
-
 def init_ui(widget, src):
     path = os.path.join(os.path.dirname(__file__), "ui", src)
     uic.loadUi(path, widget)
+
+
+def restore_ui(widget, name):
+    data = SETTINGS.value(f"{name}/geometry")
+    if data:
+        widget.restoreGeometry(data)
+
+    data = SETTINGS.value(f"{name}/windowState")
+    if data:
+        widget.restoreState(data)
+
+
+def save_ui(widget, name):
+    SETTINGS.setValue(f"{name}/geometry", widget.saveGeometry())
+    if hasattr(widget, "saveState"):
+        SETTINGS.setValue(f"{name}/windowState", widget.saveState())
 
 
 def config_dir(create=False):

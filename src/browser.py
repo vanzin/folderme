@@ -1,7 +1,6 @@
 # SPDX-License-Identifier: BSD-2-Clause
 import collections
 import util
-import threading
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtWidgets import QDialog, QListWidgetItem, QWidget
@@ -22,23 +21,31 @@ class AlbumEntry(QWidget):
 
         util.set_pixmap(self.cover, pixmap)
         self.lAlbum.setText(album.title)
-        self.lYear.setText("YEAR")  # TODO
+        self.lYear.setText(str(album.year))
 
 
 class BrowseDialog(QDialog):
     def __init__(self, parent, collection):
         QDialog.__init__(self, parent)
         util.init_ui(self, "browser.ui")
-        self.close.clicked.connect(self.hide)
+        self.bRescan.clicked.connect(self._rescan)
+        self.bClose.clicked.connect(self.close)
         self.collection = collection
+        self._scanning = False
+        self._populate_artists()
+        util.restore_ui(self, "browser")
 
-        t = threading.Thread(target=self._populate_artists, daemon=True)
-        t.start()
+    def closeEvent(self, e):
+        util.save_ui(self, "browser")
+        QDialog.closeEvent(self, e)
 
     def _populate_artists(self):
         self.artists_map = collections.defaultdict(list)
         for a in self.collection.albums:
             self.artists_map[a.artist].append(a)
+
+        for _, lst in self.artists_map.items():
+            lst.sort(key=lambda a: a.year)
 
         names = list(self.artists_map.keys())
 
@@ -86,11 +93,18 @@ class BrowseDialog(QDialog):
     def _populate_albums(self, item):
         self.albums.clear()
         albums = self.artists_map.get(item.text())
+
         for a in albums:
-            # TODO: sort by year descending
             ui = AlbumEntry(a)
             i = QListWidgetItem(self.albums)
             i.setFlags(i.flags() & ~Qt.ItemIsSelectable)
             i.setSizeHint(ui.sizeHint())
             self.albums.addItem(i)
             self.albums.setItemWidget(i, ui)
+
+    def _rescan(self):
+        self.collection.scan()
+        util.save_config(self.collection)
+        self.artists.clear()
+        self.albums.clear()
+        self._populate_artists()
