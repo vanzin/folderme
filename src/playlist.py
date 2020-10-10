@@ -147,6 +147,10 @@ class Playlist(util.ConfigObj, media.Listener, util.EventSource):
             self._inhibity_play = False
 
     def init_ui(self, ui):
+        track = self.current_track()
+        if track:
+            self._player.set_track(track.info)
+
         if self.albums:
             first = self.albums[0]
             for i in range(len(first.tracks)):

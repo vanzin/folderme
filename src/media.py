@@ -48,8 +48,7 @@ class Player(util.EventSource):
     def play(self, track=None):
         if track:
             print(f"Playing track {track.path}")
-            self._player.setMedia(QMediaContent(QUrl("file:" + track.path)))
-            self._track = track
+            self.set_track(track)
         if self._track:
             self._player.play()
 
@@ -81,6 +80,10 @@ class Player(util.EventSource):
 
     def track(self):
         return self._track
+
+    def set_track(self, track):
+        self._player.setMedia(QMediaContent(QUrl("file:" + track.path)))
+        self._track = track
 
 
 class UIAdapter(Listener):

@@ -11,7 +11,8 @@ class OSD(QMainWindow):
     def __init__(self, player):
         QMainWindow.__init__(self)
         util.init_ui(self, "osd.ui")
-        self.setWindowFlags(Qt.FramelessWindowHint)
+        self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.Tool)
+        self.setWindowOpacity(0.80)
 
         if OSD.INSTANCE:
             OSD.INSTANCE.close()
