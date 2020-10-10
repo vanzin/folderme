@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: BSD-2-Clause
 
 import argparse
+import browser
 import collection
 import ipc
 import lastfm
@@ -97,7 +98,7 @@ class MainWindow(QMainWindow, util.EventSource, util.StatefulUI):
         self.previous.clicked.connect(self.playlist.prev)
         self.newAlbum.clicked.connect(self.driver.pick_next)
         self.stop.clicked.connect(self.playlist.stop)
-        self.osd.clicked.connect(self.show_osd)
+        self.browse.clicked.connect(self.show_browser)
 
         self.scrobbler = None
         if not args.no_lastfm:
@@ -131,8 +132,8 @@ class MainWindow(QMainWindow, util.EventSource, util.StatefulUI):
         self.save_ui()
         QMainWindow.closeEvent(self, e)
 
-    def show_osd(self):
-        osd.OSD(self.playlist.player())
+    def show_browser(self):
+        browser.BrowseDialog(self, self.collection).show()
 
 
 def start(args):

@@ -200,9 +200,9 @@
        </spacer>
       </item>
       <item>
-       <widget class="QPushButton" name="osd">
+       <widget class="QPushButton" name="browse">
         <property name="text">
-         <string>OSD</string>
+         <string>Browse</string>
         </property>
        </widget>
       </item>
