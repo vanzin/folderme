@@ -171,7 +171,7 @@ class Playlist(util.ConfigObj, media.Listener, util.EventSource):
         for i in range(len(self.albums)):
             a = self.albums[i]
             if a is album:
-                stop = True
+                stop = i == 0
                 del self.albums[i]
                 break
 
