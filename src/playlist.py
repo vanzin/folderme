@@ -59,7 +59,7 @@ class Playlist(util.ConfigObj, media.Listener, util.EventSource):
             print("no albums")
             return
 
-        self.play(self.albums[0].tracks[self.track_idx])
+        self.play(self.current_track())
 
     def play(self, track):
         if not self._inhibity_play:
@@ -94,7 +94,7 @@ class Playlist(util.ConfigObj, media.Listener, util.EventSource):
                 self.track_idx += 1
                 if album.tracks[self.track_idx].skip:
                     continue
-                self.playpause()
+                self.play(self.current_track())
                 return
 
             del self.albums[0]
