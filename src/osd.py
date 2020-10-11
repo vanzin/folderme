@@ -6,15 +6,15 @@ from PyQt5.QtWidgets import QMainWindow
 
 
 class OSD(QMainWindow):
-    def __init__(self, player):
+    def __init__(self, playlist):
         QMainWindow.__init__(self)
         util.init_ui(self, "osd.ui")
 
-        self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.Tool)
+        self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
         self.setWindowOpacity(0.80)
         self.timer = None
-        self.player = player
-        player.add_listener(self)
+        self.playlist = playlist
+        self.playlist.player().add_listener(self)
 
     def track_playing(self, track):
         self.show_osd(track)
@@ -33,12 +33,14 @@ class OSD(QMainWindow):
             self.close()
 
         if not track:
-            track = self.player.track()
+            track = self.playlist.current_track()
+            if track:
+                track = track.info
 
         status = "Stopped"
-        if self.player.is_playing():
+        if self.playlist.player().is_playing():
             status = "Playing"
-        elif self.player.is_paused():
+        elif self.playlist.player().is_paused():
             status = "Paused"
 
         if not track:
