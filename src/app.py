@@ -31,6 +31,12 @@ class FolderME(QApplication):
         if self._scrobbler:
             self.playlist.add_listener(self._scrobbler)
 
+        self._bias = 1
+
+        bias = util.SETTINGS.value("playlist/bias")
+        if bias:
+            self._bias = int(bias)
+
     @property
     def pixmaps(self):
         return self._pixmaps
@@ -42,6 +48,13 @@ class FolderME(QApplication):
     @property
     def playlist(self):
         return self._playlist
+
+    @property
+    def bias(self):
+        return self._bias
+
+    def set_bias(self, bias):
+        self._bias = bias
 
     def save(self):
         self.playlist.save()

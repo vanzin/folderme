@@ -159,7 +159,7 @@ class Collection(util.ConfigObj, util.EventSource):
     def __init__(self):
         util.EventSource.__init__(self)
         self.albums = []
-        self.locations = ["/media/common/music"]
+        self.locations = []
         self._scanner = None
 
     def scan(self, listener=None):

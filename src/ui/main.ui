@@ -174,19 +174,6 @@
        </widget>
       </item>
       <item>
-       <widget class="QPushButton" name="newAlbum">
-        <property name="focusPolicy">
-         <enum>Qt::TabFocus</enum>
-        </property>
-        <property name="text">
-         <string>New Album</string>
-        </property>
-        <property name="flat">
-         <bool>false</bool>
-        </property>
-       </widget>
-      </item>
-      <item>
        <spacer name="horizontalSpacer">
         <property name="orientation">
          <enum>Qt::Horizontal</enum>
@@ -200,9 +187,9 @@
        </spacer>
       </item>
       <item>
-       <widget class="QPushButton" name="browse">
+       <widget class="QPushButton" name="bTools">
         <property name="text">
-         <string>Browse</string>
+         <string>Tools</string>
         </property>
        </widget>
       </item>

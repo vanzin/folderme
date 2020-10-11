@@ -4,6 +4,7 @@
 import app
 import argparse
 import browser
+import config
 import ipc
 import lastfm
 import media
@@ -80,9 +81,20 @@ class MainWindow(QMainWindow, util.EventSource, util.Listener):
         self.quit.clicked.connect(self.handleQuit)
         self.next.clicked.connect(p.next)
         self.previous.clicked.connect(p.prev)
-        self.newAlbum.clicked.connect(self.driver.pick_next)
         self.stop.clicked.connect(p.stop)
-        self.browse.clicked.connect(self.show_browser)
+
+        tools = QMenu()
+
+        a = tools.addAction("Browser")
+        a.triggered.connect(self.show_browser)
+
+        a = tools.addAction("Next Album")
+        a.triggered.connect(self.driver.pick_next)
+
+        a = tools.addAction("Config")
+        a.triggered.connect(self.show_config)
+
+        self.bTools.setMenu(tools)
 
         self.playlistUI.setFocus()
         util.restore_ui(self, "main")
@@ -112,12 +124,21 @@ class MainWindow(QMainWindow, util.EventSource, util.Listener):
     def show_browser(self):
         browser.BrowseDialog(self).show()
 
+    def show_config(self):
+        cfg = config.ConfigDialog()
+        cfg.exec()
+
     def collection_changed(self):
         self.repaint()
 
 
 def start(args):
     app.init(args)
+
+    if not app.get().collection.albums:
+        cfg = config.ConfigDialog()
+        cfg.exec()
+
     mainUI = MainWindow(args)
 
     if not args.no_dbus:
