@@ -70,13 +70,6 @@ class MainWindow(QMainWindow, util.EventSource, util.Listener):
         c = app.get().collection
         c.add_listener(self)
 
-        print(f"Loaded {len(c.albums)} albums.")
-        if not c.albums:
-            print("Scanning...")
-            self.collection.scan()
-            print(f"Found {len(c.albums)} albums.")
-            util.save_config(self.collection)
-
         p = app.get().playlist
         p.init_ui(self)
         self.osd = osd.OSD(p)
