@@ -2,7 +2,6 @@
 import media
 import util
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QPixmap
 from PyQt5.QtWidgets import (
     QListWidgetItem,
     QGraphicsScene,
@@ -195,30 +194,23 @@ class AlbumUI(QWidget):
 
 
 class TrackUI(QWidget):
-    def __init__(self, parent, track):
-        QWidget.__init__(self, parent)
+    def __init__(self, ui, track):
+        QWidget.__init__(self, ui.playlistUI)
         util.init_ui(self, "track.ui")
         self.track = track
+        self.ui = ui
 
         info = track.info
         self.lTitle.setText(f"{info.trackno} - {info.title}")
         self.lDuration.setText(util.ms_to_text(info.duration_ms))
         self.set_playing(False)
 
-        pixmap = QPixmap()
-        if track.stop_after:
-            pixmap.load(util.icon("stop.png"))
-        else:
-            pixmap.load(util.icon("empty.png"))
-        util.set_pixmap(self.lStopAfter, pixmap)
+        icon = "stop.png" if track.stop_after else "empty.png"
+        util.set_pixmap(self.lStopAfter, self.ui.pixmaps.get_icon(icon))
 
     def set_playing(self, playing):
-        pixmap = QPixmap()
-        if playing:
-            pixmap.load(util.icon("play.png"))
-        else:
-            pixmap.load(util.icon("empty.png"))
-        util.set_pixmap(self.lPlaying, pixmap)
+        icon = "play.png" if playing else "empty.png"
+        util.set_pixmap(self.lPlaying, self.ui.pixmaps.get_icon(icon))
 
     def update(self):
         font = self.lTitle.font()
@@ -279,25 +271,17 @@ class UIAdapter:
 
             self._add_list_item(album_ui)
 
-            cover = None
             for t in a.tracks:
-                track_ui = TrackUI(self.ui.playlistUI, t)
+                track_ui = TrackUI(self.ui, t)
                 self._add_list_item(track_ui)
-                if not cover:
-                    cover = t.info.cover_art()
 
-            pixmap = QPixmap()
-            if cover:
-                pixmap.loadFromData(cover)
-            else:
-                pixmap.load(util.icon("blank.jpg"))
-
+            cover = self.ui.pixmaps.get_cover(a)
             if first:
-                self._cover_img = pixmap
+                self._cover_img = cover
                 self._update_cover()
                 first = False
 
-            util.set_pixmap(album_ui.cover, pixmap)
+            util.set_pixmap(album_ui.cover, cover)
 
         self._update_track(self.playlist.current_track())
         self.ui.playlistUI.repaint()

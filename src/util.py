@@ -2,6 +2,7 @@
 import jsonpickle
 import os
 from PyQt5 import uic
+from PyQt5.QtGui import QPixmap, QPixmapCache
 from PyQt5.QtCore import Qt, QSettings
 
 SETTINGS = QSettings("vanzin.org", "folderme")
@@ -61,6 +62,37 @@ class EventSource:
 
     def fire_event(self, handler, *args):
         EventSource._fire(self, handler, args)
+
+
+class PixmapCache:
+    def __init__(self):
+        self._cache = QPixmapCache()
+        self._cache.setCacheLimit(64 * 1024 * 1024)
+
+    def get_cover(self, album):
+        track = album.tracks[0]
+        pixmap = self._cache.find(os.path.dirname(track.info.path))
+        if not pixmap:
+            pixmap = QPixmap()
+            cover = track.info.cover_art()
+            if cover:
+                pixmap.loadFromData(cover)
+            else:
+                pixmap.load(icon("blank.jpg"))
+            self._cache.insert(track.info.path, pixmap)
+        return pixmap
+
+    def remove_cover(self, album):
+        track = album.tracks[0]
+        self._cache.remove(os.path.dirname(track.path))
+
+    def get_icon(self, name):
+        pixmap = self._cache.find(name)
+        if not pixmap:
+            pixmap = QPixmap()
+            pixmap.load(icon(name))
+            self._cache.insert(name, pixmap)
+        return pixmap
 
 
 def init_ui(widget, src):

@@ -75,6 +75,7 @@ class MainWindow(QMainWindow, util.EventSource, collection.Listener):
         util.EventSource.__init__(self)
         util.init_ui(self, "main.ui")
 
+        self.pixmaps = util.PixmapCache()
         self.collection = util.load_config(collection.Collection)
         self.collection.add_listener(self)
 
