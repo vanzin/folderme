@@ -25,6 +25,13 @@ class ConfigObj:
         for k, v in data.items():
             setattr(self, k, v)
 
+    def save(self):
+        _init_pickler()
+        path = os.path.join(config_dir(create=True), self.config_file_name())
+        data = jsonpickle.encode(self)
+        with open(path, "wt", encoding="utf-8") as out:
+            out.write(data)
+
 
 class EventSource:
     """
@@ -62,6 +69,38 @@ class EventSource:
 
     def fire_event(self, handler, *args):
         EventSource._fire(self, handler, args)
+
+
+class Listener:
+    def collection_changed(self):
+        pass
+
+    def playlist_playing(self):
+        pass
+
+    def playlist_changed(self):
+        pass
+
+    def playlist_ended(self):
+        pass
+
+    def track_paused(self, track):
+        pass
+
+    def track_playing(self, track):
+        pass
+
+    def track_stopped(self, track):
+        pass
+
+    def track_ended(self, track):
+        pass
+
+    def ui_resized(self, widget):
+        pass
+
+    def ui_exit(self):
+        pass
 
 
 class PixmapCache:
@@ -127,14 +166,6 @@ def config_dir(create=False):
 def _init_pickler():
     jsonpickle.set_preferred_backend("json")
     jsonpickle.set_encoder_options("json", indent=2)
-
-
-def save_config(obj):
-    _init_pickler()
-    path = os.path.join(config_dir(create=True), obj.config_file_name())
-    data = jsonpickle.encode(obj)
-    with open(path, "wt", encoding="utf-8") as out:
-        out.write(data)
 
 
 def load_config(cls):

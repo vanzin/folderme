@@ -9,11 +9,6 @@ from PyQt5.QtCore import QObject, QThread, pyqtSignal
 METADATA_VERSION = 2
 
 
-class Listener:
-    def collection_changed(self, collection):
-        pass
-
-
 class Track(util.ConfigObj):
     def __init__(self):
         self.path = None
@@ -180,4 +175,4 @@ class Collection(util.ConfigObj, util.EventSource):
 
     def scan_done(self):
         self._scanner = None
-        self.fire_event(Listener.collection_changed, self)
+        self.fire_event(util.Listener.collection_changed)

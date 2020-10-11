@@ -1,4 +1,5 @@
 # SPDX-License-Identifier: BSD-2-Clause
+import app
 import media
 import util
 from PyQt5.QtCore import Qt
@@ -10,34 +11,24 @@ from PyQt5.QtWidgets import (
 )
 
 
-class Listener:
-    def playlist_playing(self, playlist):
-        pass
-
-    def playlist_changed(self, playlist):
-        pass
-
-    def playlist_ended(self, playlist):
-        pass
-
-
-class Track:
-    def __init__(self, track, index):
+class Track(util.ConfigObj):
+    def __init__(self, track=None, index=-1):
         self.info = track
         self.skip = False
         self.stop_after = False
         self.index = index
 
 
-class Album:
-    def __init__(self, album):
+class Album(util.ConfigObj):
+    def __init__(self, album=None):
         self.info = album
         self.tracks = []
-        for i in range(len(album.tracks)):
-            self.tracks.append(Track(album.tracks[i], i))
+        if album:
+            for i in range(len(album.tracks)):
+                self.tracks.append(Track(album.tracks[i], i))
 
 
-class Playlist(util.ConfigObj, media.Listener, util.EventSource):
+class Playlist(util.ConfigObj, util.Listener, util.EventSource):
     def __init__(self):
         util.EventSource.__init__(self)
         self.albums = []
@@ -65,7 +56,7 @@ class Playlist(util.ConfigObj, media.Listener, util.EventSource):
         if not self._inhibity_play:
             self.track_idx = track.index
             self._player.play(track=track.info)
-            self.fire_event(Listener.playlist_playing, self)
+            self.fire_event(util.Listener.playlist_playing)
 
     def is_playing(self):
         return self._player.is_playing()
@@ -86,6 +77,7 @@ class Playlist(util.ConfigObj, media.Listener, util.EventSource):
                     new_value = False
                 idx += 1
         track.stop_after = new_value
+        self.fire_event(util.Listener.playlist_changed)
 
     def next(self):
         while True:
@@ -99,7 +91,7 @@ class Playlist(util.ConfigObj, media.Listener, util.EventSource):
 
             del self.albums[0]
             if not self.albums:
-                self.fire_event(Listener.playlist_ended, self)
+                self.fire_event(util.Listener.playlist_ended)
                 return
 
     def prev(self):
@@ -116,7 +108,7 @@ class Playlist(util.ConfigObj, media.Listener, util.EventSource):
         self.albums = [Album(album)]
         self.track_idx = 0
         self.stop()
-        self.fire_event(Listener.playlist_changed, self)
+        self.fire_event(util.Listener.playlist_changed)
         if play:
             self.playpause()
 
@@ -139,7 +131,7 @@ class Playlist(util.ConfigObj, media.Listener, util.EventSource):
         if self.track_idx == len(self.albums[0].tracks) - 1:
             del self.albums[0]
             self._inhibity_play = True
-            self.fire_event(Listener.playlist_ended, self)
+            self.fire_event(util.Listener.playlist_ended)
             self._inhibity_play = False
 
     def init_ui(self, ui):
@@ -153,7 +145,7 @@ class Playlist(util.ConfigObj, media.Listener, util.EventSource):
                 if first.tracks[i].stop_after and i != self.track_idx:
                     first.tracks[i].stop_after = False
 
-        adapter = UIAdapter(ui, self)
+        adapter = UIAdapter(ui)
         self.add_listener(adapter)
         ui.add_listener(adapter)
         self._player.init_ui(ui)
@@ -163,7 +155,7 @@ class Playlist(util.ConfigObj, media.Listener, util.EventSource):
 
     def add_album(self, album):
         self.albums.append(Album(album))
-        self.fire_event(Listener.playlist_changed, self)
+        self.fire_event(util.Listener.playlist_changed)
 
     def remove_album(self, album):
         stop = False
@@ -181,7 +173,7 @@ class Playlist(util.ConfigObj, media.Listener, util.EventSource):
             if play:
                 self.playpause()
 
-        self.fire_event(Listener.playlist_changed, self)
+        self.fire_event(util.Listener.playlist_changed)
 
 
 class AlbumUI(QWidget):
@@ -200,17 +192,14 @@ class TrackUI(QWidget):
         self.track = track
         self.ui = ui
 
-        info = track.info
-        self.lTitle.setText(f"{info.trackno} - {info.title}")
-        self.lDuration.setText(util.ms_to_text(info.duration_ms))
+        self.lTitle.setText(f"{track.info.trackno} - {track.info.title}")
+        self.lDuration.setText(util.ms_to_text(track.info.duration_ms))
         self.set_playing(False)
-
-        icon = "stop.png" if track.stop_after else "empty.png"
-        util.set_pixmap(self.lStopAfter, self.ui.pixmaps.get_icon(icon))
+        self.update()
 
     def set_playing(self, playing):
         icon = "play.png" if playing else "empty.png"
-        util.set_pixmap(self.lPlaying, self.ui.pixmaps.get_icon(icon))
+        util.set_pixmap(self.lPlaying, app.get().pixmaps.get_icon(icon))
 
     def update(self):
         font = self.lTitle.font()
@@ -218,17 +207,19 @@ class TrackUI(QWidget):
         self.lTitle.setFont(font)
         self.repaint()
 
+        icon = "stop.png" if self.track.stop_after else "empty.png"
+        util.set_pixmap(self.lStopAfter, app.get().pixmaps.get_icon(icon))
+
 
 class UIAdapter:
-    def __init__(self, ui, playlist):
+    def __init__(self, ui):
         self.ui = ui
-        self.playlist = playlist
         self._cover_img = None
 
-        if playlist.albums:
+        if app.get().playlist.albums:
             self._update_playlist()
 
-        track = playlist.current_track()
+        track = app.get().playlist.current_track()
         if track:
             self._update_track(track)
 
@@ -238,16 +229,13 @@ class UIAdapter:
         self.ui.playlistUI.keyReleaseEvent = self._handle_key_released
 
     def track_playing(self, track):
-        self._update_track(self.playlist.current_track())
+        self._update_track(app.get().playlist.current_track())
 
-    def playlist_changed(self, playlist):
+    def playlist_changed(self):
         self._update_playlist()
 
     def ui_resized(self, widget):
         self._update_cover()
-
-    def ui_exit(self):
-        util.save_config(self.playlist)
 
     def _update_track(self, track):
         self.ui.plArtist.setText(track.info.artist)
@@ -266,7 +254,7 @@ class UIAdapter:
         self.ui.playlistUI.clear()
 
         first = True
-        for a in self.playlist.albums:
+        for a in app.get().playlist.albums:
             album_ui = AlbumUI(self.ui.playlistUI, a)
 
             self._add_list_item(album_ui)
@@ -275,7 +263,7 @@ class UIAdapter:
                 track_ui = TrackUI(self.ui, t)
                 self._add_list_item(track_ui)
 
-            cover = self.ui.pixmaps.get_cover(a)
+            cover = app.get().pixmaps.get_cover(a)
             if first:
                 self._cover_img = cover
                 self._update_cover()
@@ -283,7 +271,7 @@ class UIAdapter:
 
             util.set_pixmap(album_ui.cover, cover)
 
-        self._update_track(self.playlist.current_track())
+        self._update_track(app.get().playlist.current_track())
         self.ui.playlistUI.repaint()
 
     def _update_cover(self):
@@ -315,7 +303,7 @@ class UIAdapter:
             widget = self.ui.playlistUI.itemWidget(item)
             if isinstance(widget, AlbumUI):
                 if skip:
-                    self.playlist.remove_album(widget.album)
+                    app.get().playlist.remove_album(widget.album)
             else:
                 widget.track.skip = skip
                 widget.update()
@@ -329,5 +317,5 @@ class UIAdapter:
         if not isinstance(widget, TrackUI):
             return
 
-        self.playlist.stop_after(widget.track)
+        app.get().playlist.stop_after(widget.track)
         self._update_playlist()

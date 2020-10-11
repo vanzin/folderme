@@ -1,4 +1,5 @@
 # SPDX-License-Identifier: BSD-2-Clause
+import app
 import collections
 import util
 from PyQt5.QtCore import Qt
@@ -40,15 +41,13 @@ class ScanDialog(QDialog):
 
 
 class BrowseDialog(QDialog):
-    def __init__(self, parent, collection, playlist):
+    def __init__(self, parent):
         QDialog.__init__(self, parent)
         util.init_ui(self, "browser.ui")
         self.bRescan.clicked.connect(self._rescan)
         self.bClose.clicked.connect(self.close)
         self.albums.itemActivated.connect(self._add_album)
         self.artists.itemActivated.connect(self._populate_albums)
-        self.collection = collection
-        self.playlist = playlist
         self._scanning = False
         self._populate_artists()
         util.restore_ui(self, "browser")
@@ -59,11 +58,11 @@ class BrowseDialog(QDialog):
 
     def _add_album(self, item):
         e = self.albums.itemWidget(item)
-        self.playlist.add_album(e.album)
+        app.get().playlist.add_album(e.album)
 
     def _populate_artists(self):
         self.artists_map = collections.defaultdict(list)
-        for a in self.collection.albums:
+        for a in app.get().collection.albums:
             self.artists_map[a.artist].append(a)
 
         for _, lst in self.artists_map.items():
@@ -127,11 +126,11 @@ class BrowseDialog(QDialog):
         dlg = ScanDialog(self)
         self.bRescan.setEnabled(False)
         self.bClose.setEnabled(False)
-        self.collection.scan(dlg)
+        app.get().collection.scan(dlg)
         dlg.show()
 
     def scan_done(self):
-        util.save_config(self.collection)
+        app.get().collection.save()
         self.artists.clear()
         self.albums.clear()
         self._populate_artists()

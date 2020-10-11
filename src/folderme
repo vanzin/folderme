@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: BSD-2-Clause
 
+import app
 import argparse
 import browser
-import collection
 import ipc
 import lastfm
 import media
@@ -14,18 +14,10 @@ import sys
 import time
 import util
 from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QApplication, QMainWindow, QMenu, QSystemTrayIcon
+from PyQt5.QtWidgets import QMainWindow, QMenu, QSystemTrayIcon
 
 
-class UIListener(util.EventSource):
-    def ui_resized(self, widget):
-        pass
-
-    def ui_exit(self):
-        pass
-
-
-class TrayIcon(QSystemTrayIcon, playlist.Listener, media.Listener):
+class TrayIcon(QSystemTrayIcon, util.Listener):
     def __init__(self, ui):
         QSystemTrayIcon.__init__(self, QIcon(util.icon("folderme.png")))
         self.ui = ui
@@ -33,13 +25,13 @@ class TrayIcon(QSystemTrayIcon, playlist.Listener, media.Listener):
         menu = QMenu()
 
         a = menu.addAction(QIcon(util.icon("play.png")), "Play")
-        a.triggered.connect(self.ui.playlist.playpause)
+        a.triggered.connect(app.get().playlist.playpause)
 
         a = menu.addAction(QIcon(util.icon("pause.png")), "Pause")
-        a.triggered.connect(self.ui.playlist.playpause)
+        a.triggered.connect(app.get().playlist.playpause)
 
         a = menu.addAction(QIcon(util.icon("stop.png")), "Stop")
-        a.triggered.connect(self.ui.playlist.playpause)
+        a.triggered.connect(app.get().playlist.playpause)
 
         a = menu.addAction(QIcon(util.icon("quit.png")), "Quit")
         a.triggered.connect(self.ui.handleQuit)
@@ -48,7 +40,7 @@ class TrayIcon(QSystemTrayIcon, playlist.Listener, media.Listener):
 
         self.activated.connect(self._activated)
         self.setToolTip("Stopped")
-        self.ui.playlist.add_listener(self)
+        app.get().playlist.add_listener(self)
 
     def _activated(self, reason):
         if reason != self.Trigger:
@@ -69,40 +61,35 @@ class TrayIcon(QSystemTrayIcon, playlist.Listener, media.Listener):
         self.setToolTip(f"Stopped")
 
 
-class MainWindow(QMainWindow, util.EventSource, collection.Listener):
+class MainWindow(QMainWindow, util.EventSource, util.Listener):
     def __init__(self, args):
         QMainWindow.__init__(self)
         util.EventSource.__init__(self)
         util.init_ui(self, "main.ui")
 
-        self.pixmaps = util.PixmapCache()
-        self.collection = util.load_config(collection.Collection)
-        self.collection.add_listener(self)
+        c = app.get().collection
+        c.add_listener(self)
 
-        print(f"Loaded {len(self.collection.albums)} albums.")
-        if not self.collection.albums:
+        print(f"Loaded {len(c.albums)} albums.")
+        if not c.albums:
             print("Scanning...")
             self.collection.scan()
-            print(f"Found {len(self.collection.albums)} albums.")
+            print(f"Found {len(c.albums)} albums.")
             util.save_config(self.collection)
 
-        self.playlist = util.load_config(playlist.Playlist)
-        self.playlist.init_ui(self)
-        self.osd = osd.OSD(self.playlist)
+        p = app.get().playlist
+        p.init_ui(self)
+        self.osd = osd.OSD(p)
 
-        self.driver = randomizer.Randomizer(self.collection, self.playlist)
+        self.driver = randomizer.Randomizer()
 
         self.playPause.clicked.connect(self.handlePlayPause)
         self.quit.clicked.connect(self.handleQuit)
-        self.next.clicked.connect(self.playlist.next)
-        self.previous.clicked.connect(self.playlist.prev)
+        self.next.clicked.connect(p.next)
+        self.previous.clicked.connect(p.prev)
         self.newAlbum.clicked.connect(self.driver.pick_next)
-        self.stop.clicked.connect(self.playlist.stop)
+        self.stop.clicked.connect(p.stop)
         self.browse.clicked.connect(self.show_browser)
-
-        self.scrobbler = lastfm.get_scrobbler(not args.no_lastfm)
-        if self.scrobbler:
-            self.playlist.add_listener(self.scrobbler)
 
         self.playlistUI.setFocus()
         util.restore_ui(self, "main")
@@ -113,35 +100,31 @@ class MainWindow(QMainWindow, util.EventSource, collection.Listener):
         self.playlist.playpause()
 
     def handleQuit(self):
-        self.fire_event(UIListener.ui_exit)
+        self.fire_event(util.Listener.ui_exit)
         util.save_ui(self, "main")
-        if self.scrobbler:
-            self.scrobbler.shutdown()
-        QApplication.instance().quit()
+        app.get().exit()
 
     def resizeEvent(self, e):
         QMainWindow.resizeEvent(self, e)
-        self.fire_event(UIListener.ui_resized, self)
+        self.fire_event(util.Listener.ui_resized, self)
 
     def showEvent(self, e):
         QMainWindow.showEvent(self, e)
-        self.fire_event(UIListener.ui_resized, self)
+        self.fire_event(util.Listener.ui_resized, self)
 
     def closeEvent(self, e):
         util.save_ui(self, "main")
         QMainWindow.closeEvent(self, e)
 
     def show_browser(self):
-        browser.BrowseDialog(self, self.collection, self.playlist).show()
+        browser.BrowseDialog(self).show()
 
-    def collection_changed(self, collection):
+    def collection_changed(self):
         self.repaint()
 
 
 def start(args):
-    app = QApplication(sys.argv)
-    app.setWindowIcon(QIcon(util.icon("folderme.png")))
-
+    app.init(args)
     mainUI = MainWindow(args)
 
     if not args.no_dbus:
@@ -153,7 +136,7 @@ def start(args):
     if args.show:
         mainUI.show()
 
-    sys.exit(app.exec_())
+    sys.exit(app.get().exec())
 
 
 def main(argv):

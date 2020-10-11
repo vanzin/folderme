@@ -1,17 +1,17 @@
 # SPDX-License-Identifier: BSD-2-Clause
+import app
 import playlist
 import random
 import time
+import util
 
 
-class Randomizer(playlist.Listener):
-    def __init__(self, collection, plist):
-        self.collection = collection
+class Randomizer(util.Listener):
+    def __init__(self):
         self.rnd = random.Random(time.time())
-        self.playlist = plist
-        plist.add_listener(self)
+        app.get().playlist.add_listener(self)
 
-    def playlist_ended(self, plist):
+    def playlist_ended(self):
         self.pick_next(play=True)
 
     def pick_next(self, play=False):
@@ -19,12 +19,12 @@ class Randomizer(playlist.Listener):
             print("No albums.")
             return
 
-        ignore = [x.artist for x in self.playlist.albums]
+        ignore = [x.artist for x in app.get().playlist.albums]
         while True:
-            next = self.rnd.choice(self.collection.albums)
+            next = self.rnd.choice(app.get().collection.albums)
             if next.artist in ignore:
                 continue
 
             print(f"Playing {next.artist}/{next.title}")
-            self.playlist.replace(next, play=play)
+            app.get().playlist.replace(next, play=play)
             return

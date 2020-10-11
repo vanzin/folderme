@@ -1,24 +1,11 @@
 # SPDX-License-Identifier: BSD-2-Clause
+import app
 import sys
 import util
 
 from PyQt5.QtCore import QUrl
 from PyQt5.QtMultimedia import QMediaPlayer, QMediaContent
 from PyQt5.QtWidgets import QApplication
-
-
-class Listener:
-    def track_paused(self, track):
-        pass
-
-    def track_playing(self, track):
-        pass
-
-    def track_stopped(self, track):
-        pass
-
-    def track_ended(self, track):
-        pass
 
 
 class Player(util.EventSource):
@@ -35,15 +22,15 @@ class Player(util.EventSource):
 
     def _handleStatusChange(self, status):
         if status == self._player.EndOfMedia:
-            self.fire_event(Listener.track_ended, self._track)
+            self.fire_event(util.Listener.track_ended, self._track)
 
     def _handleStateChange(self, state):
         if state == self._player.StoppedState:
-            self.fire_event(Listener.track_stopped, self._track)
+            self.fire_event(util.Listener.track_stopped, self._track)
         elif state == self._player.PlayingState:
-            self.fire_event(Listener.track_playing, self._track)
+            self.fire_event(util.Listener.track_playing, self._track)
         elif state == self._player.PausedState:
-            self.fire_event(Listener.track_paused, self._track)
+            self.fire_event(util.Listener.track_paused, self._track)
 
     def play(self, track=None):
         if track:
@@ -53,7 +40,7 @@ class Player(util.EventSource):
         if self._track:
             self._player.play()
         if fire_event:
-            self.fire_event(Listener.track_playing, self._track)
+            self.fire_event(util.Listener.track_playing, self._track)
 
     def pause(self):
         if self.is_playing():
@@ -89,7 +76,7 @@ class Player(util.EventSource):
         self._track = track
 
 
-class UIAdapter(Listener):
+class UIAdapter(util.Listener):
     def __init__(self, ui, player):
         self.ui = ui
         self.player = player

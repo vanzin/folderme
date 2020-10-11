@@ -46,10 +46,10 @@ class ScrobbleCache(util.ConfigObj):
 
     def add(self, s):
         self.scrobbles.append(s)
-        util.save_config(self)
+        self.save()
 
 
-class Scrobbler(media.Listener):
+class Scrobbler(util.Listener):
     def __init__(self, session_key, enabled):
         self.lock = threading.Lock()
         self.event = threading.Event()
@@ -129,7 +129,7 @@ class Scrobbler(media.Listener):
         self.running = False
         self.event.set()
         self.thread.join()
-        util.save_config(self.cache)
+        self.cache.save()
 
 
 def get_scrobbler(enabled):
