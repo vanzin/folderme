@@ -24,6 +24,21 @@ class AlbumEntry(QWidget):
         self.lYear.setText(str(album.year))
 
 
+class ScanDialog(QDialog):
+    def __init__(self, parent):
+        QDialog.__init__(self, parent)
+        util.init_ui(self, "rescan.ui")
+        self.lScanState.setText("Scanning...")
+        self._parent = parent
+
+    def scan_progress(self, path):
+        self.lScanState.setText(f"Scanning {path}...")
+
+    def scan_done(self):
+        self.close()
+        self._parent.scan_done()
+
+
 class BrowseDialog(QDialog):
     def __init__(self, parent, collection, playlist):
         QDialog.__init__(self, parent)
@@ -31,11 +46,11 @@ class BrowseDialog(QDialog):
         self.bRescan.clicked.connect(self._rescan)
         self.bClose.clicked.connect(self.close)
         self.albums.itemActivated.connect(self._add_album)
+        self.artists.itemActivated.connect(self._populate_albums)
         self.collection = collection
         self.playlist = playlist
         self._scanning = False
         self._populate_artists()
-        self.lScanState.setVisible(False)
         util.restore_ui(self, "browser")
 
     def closeEvent(self, e):
@@ -94,7 +109,6 @@ class BrowseDialog(QDialog):
             i.setFlags(i.flags() & ~Qt.ItemIsSelectable)
             self.artists.addItem(i)
 
-        self.artists.itemActivated.connect(self._populate_albums)
         self.repaint()
 
     def _populate_albums(self, item):
@@ -110,14 +124,11 @@ class BrowseDialog(QDialog):
             self.albums.setItemWidget(i, ui)
 
     def _rescan(self):
-        self.lScanState.setText("Scanning...")
-        self.lScanState.setVisible(True)
+        dlg = ScanDialog(self)
         self.bRescan.setEnabled(False)
         self.bClose.setEnabled(False)
-        self.collection.scan(self)
-
-    def scan_progress(self, path):
-        self.lScanState.setText(f"Scanning {path}...")
+        self.collection.scan(dlg)
+        dlg.show()
 
     def scan_done(self):
         util.save_config(self.collection)
@@ -126,4 +137,3 @@ class BrowseDialog(QDialog):
         self._populate_artists()
         self.bRescan.setEnabled(True)
         self.bClose.setEnabled(True)
-        self.lScanState.setVisible(False)
