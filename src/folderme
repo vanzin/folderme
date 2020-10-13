@@ -91,6 +91,9 @@ class MainWindow(QMainWindow, util.EventSource, util.Listener):
         a = tools.addAction("Next Album")
         a.triggered.connect(self.driver.pick_next)
 
+        a = tools.addAction("Rescan Collection")
+        a.triggered.connect(self.rescan)
+
         a = tools.addAction("Config")
         a.triggered.connect(self.show_config)
 
@@ -130,6 +133,15 @@ class MainWindow(QMainWindow, util.EventSource, util.Listener):
 
     def collection_changed(self):
         self.repaint()
+
+    def rescan(self):
+        dlg = browser.ScanDialog(self)
+        app.get().collection.scan(dlg)
+        dlg.setModal(True)
+        dlg.exec()
+
+    def scan_done(self):
+        pass
 
 
 def start(args):
