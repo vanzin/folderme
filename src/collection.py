@@ -131,12 +131,11 @@ class Scanner(QThread, util.EventSource):
 
     def run(self):
         albums = []
-        by_path = {x.path: x for x in self.collection.albums}
         for path in self.collection.locations:
             for root, dirs, files, dirfd in os.fwalk(path):
                 self.progress.emit(root)
                 if files:
-                    a = by_path.get(root)
+                    a = self.collection.get_album(root)
                     if a and a.version == METADATA_VERSION:
                         mtime = min(os.stat(f, dir_fd=dirfd).st_mtime for f in files)
                         if mtime <= a.mtime:
@@ -161,6 +160,7 @@ class Collection(util.ConfigObj, util.EventSource):
         self.albums = []
         self.locations = []
         self._scanner = None
+        self._by_path = None
 
     def scan(self, listener=None):
         if self._scanner:
@@ -176,3 +176,8 @@ class Collection(util.ConfigObj, util.EventSource):
     def scan_done(self):
         self._scanner = None
         self.fire_event(util.Listener.collection_changed)
+
+    def get_album(self, path):
+        if not self._by_path:
+            self._by_path = {x.path: x for x in self.albums}
+        return self._by_path.get(path)

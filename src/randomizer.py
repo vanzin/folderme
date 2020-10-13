@@ -15,11 +15,11 @@ class Randomizer(util.Listener):
         self.pick_next(play=True)
 
     def pick_next(self, play=False):
-        if not self.collection.albums:
+        if not app.get().collection.albums:
             print("No albums.")
             return
 
-        ignore = [x.artist for x in app.get().playlist.albums]
+        ignore = [x.info.artist for x in app.get().playlist.albums]
         while True:
             next = self.rnd.choice(app.get().collection.albums)
             if next.artist in ignore:

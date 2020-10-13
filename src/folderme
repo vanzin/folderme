@@ -100,9 +100,9 @@ class MainWindow(QMainWindow, util.EventSource, util.Listener):
         util.restore_ui(self, "main")
 
     def handlePlayPause(self):
-        if not self.playlist.albums:
+        if not app.get().playlist.albums:
             self.driver.pick_next()
-        self.playlist.playpause()
+        app.get().playlist.playpause()
 
     def handleQuit(self):
         self.fire_event(util.Listener.ui_exit)

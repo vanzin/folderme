@@ -12,7 +12,8 @@ _INSTANCE = None
 
 def init(args):
     global _INSTANCE
-    _INSTANCE = FolderME(args)
+    _INSTANCE = FolderME()
+    _INSTANCE.init(args)
 
 
 def get():
@@ -20,10 +21,11 @@ def get():
 
 
 class FolderME(QApplication):
-    def __init__(self, args):
+    def __init__(self):
         QApplication.__init__(self, sys.argv)
         self.setWindowIcon(QIcon(util.icon("folderme.png")))
 
+    def init(self, args):
         self._pixmaps = util.PixmapCache()
         self._collection = collection.Collection.load()
         self._playlist = playlist.Playlist.load()

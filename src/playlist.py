@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: BSD-2-Clause
 import app
 import media
+import os
 import util
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import (
@@ -11,21 +12,48 @@ from PyQt5.QtWidgets import (
 )
 
 
-class Track(util.ConfigObj):
-    def __init__(self, track=None, index=-1):
+class Track:
+    def __init__(self, track, index, skip=False):
         self.info = track
-        self.skip = False
+        self.skip = skip
         self.stop_after = False
         self.index = index
 
 
 class Album(util.ConfigObj):
+    K_SKIP_TRACKS = "skip"
+
     def __init__(self, album=None):
-        self.info = album
-        self.tracks = []
+        self._info = album
+        self._tracks = []
+        self.path = None
         if album:
+            self.path = album.path
             for i in range(len(album.tracks)):
                 self.tracks.append(Track(album.tracks[i], i))
+
+    @property
+    def info(self):
+        return self._info
+
+    @property
+    def tracks(self):
+        return self._tracks
+
+    def __getstate__(self):
+        data = util.ConfigObj.__getstate__(self)
+        data[self.K_SKIP_TRACKS] = [t.index for t in self._tracks if t.skip]
+        return data
+
+    def __setstate__(self, data):
+        skip = data.get(self.K_SKIP_TRACKS, [])
+        if skip:
+            del data[self.K_SKIP_TRACKS]
+        util.ConfigObj.__setstate__(self, data)
+
+        self._info = app.get().collection.get_album(self.path)
+        for i in range(len(self.info.tracks)):
+            self._tracks.append(Track(self.info.tracks[i], i, skip=i in skip))
 
 
 class Playlist(util.ConfigObj, util.Listener, util.EventSource):
