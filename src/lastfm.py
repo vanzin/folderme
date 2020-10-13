@@ -53,7 +53,7 @@ class Scrobbler(util.Listener):
     def __init__(self, session_key, enabled):
         self.lock = threading.Lock()
         self.event = threading.Event()
-        self.cache = util.load_config(ScrobbleCache)
+        self.cache = ScrobbleCache.load()
         self.session_key = session_key
         self.enabled = enabled
 

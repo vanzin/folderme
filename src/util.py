@@ -14,6 +14,13 @@ class ConfigObj:
     """
 
     @classmethod
+    def load(cls):
+        path = os.path.join(config_dir(), cls.config_file_name())
+        if os.path.isfile(path):
+            return jsonpickle.decode(open(path).read())
+        return cls()
+
+    @classmethod
     def config_file_name(cls):
         return "{}.{}".format(cls.__module__, cls.__name__)
 
@@ -166,13 +173,6 @@ def config_dir(create=False):
 def _init_pickler():
     jsonpickle.set_preferred_backend("json")
     jsonpickle.set_encoder_options("json", indent=2)
-
-
-def load_config(cls):
-    path = os.path.join(config_dir(), cls.config_file_name())
-    if os.path.isfile(path):
-        return jsonpickle.decode(open(path).read())
-    return cls()
 
 
 def icon(name):

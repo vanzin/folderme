@@ -25,8 +25,8 @@ class FolderME(QApplication):
         self.setWindowIcon(QIcon(util.icon("folderme.png")))
 
         self._pixmaps = util.PixmapCache()
-        self._collection = util.load_config(collection.Collection)
-        self._playlist = util.load_config(playlist.Playlist)
+        self._collection = collection.Collection.load()
+        self._playlist = playlist.Playlist.load()
         self._scrobbler = lastfm.get_scrobbler(not args.no_lastfm)
         if self._scrobbler:
             self.playlist.add_listener(self._scrobbler)
