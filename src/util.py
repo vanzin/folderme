@@ -146,6 +146,11 @@ def init_ui(widget, src):
     uic.loadUi(path, widget)
 
 
+def compile_ui(src):
+    path = os.path.join(os.path.dirname(__file__), "ui", src)
+    return uic.loadUiType(path)[0]
+
+
 def restore_ui(widget, name):
     data = SETTINGS.value(f"{name}/geometry")
     if data:

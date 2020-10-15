@@ -6,11 +6,14 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtWidgets import QDialog, QListWidgetItem, QWidget
 
+AlbumEntryBase = util.compile_ui("browser_album.ui")
 
-class AlbumEntry(QWidget):
+
+class AlbumEntry(QWidget, AlbumEntryBase):
     def __init__(self, album):
         QWidget.__init__(self)
-        util.init_ui(self, "browser_album.ui")
+        AlbumEntryBase.__init__(self)
+        self.setupUi(self)
         self.album = album
 
         cover = album.tracks[0].cover_art()
