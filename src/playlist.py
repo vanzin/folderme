@@ -89,6 +89,9 @@ class Playlist(util.ConfigObj, util.Listener, util.EventSource):
     def is_playing(self):
         return self._player.is_playing()
 
+    def is_paused(self):
+        return self._player.is_paused()
+
     def stop(self):
         self._player.stop()
 
