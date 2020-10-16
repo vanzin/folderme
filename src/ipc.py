@@ -20,11 +20,38 @@ PLAYER_IFACE = "org.mpris.MediaPlayer2.Player"
 PROPS_IFACE = "org.freedesktop.DBus.Properties"
 
 
+class Remote:
+    def __init__(self, ui):
+        self.ui = ui
+
+    def playpause(self):
+        plist = app.get().playlist
+        if not plist.albums and not plist.is_playing():
+            self.ui.driver.pick_next(play=True)
+        else:
+            plist.playpause()
+
+    def stop(self):
+        app.get().playlist.stop()
+
+    def quit(self):
+        self.ui.handleQuit()
+
+    def next(self):
+        app.get().playlist.next()
+
+    def prev(self):
+        app.get().playlist.prev()
+
+    def pause(self):
+        app.get().playlist.pause()
+
+
 class MPRIS(dbus.service.Object, util.Listener):
     OBJECT = "/org/mpris/MediaPlayer2"
     SERVICE = "org.mpris.MediaPlayer2.folderme"
 
-    def __init__(self, bus):
+    def __init__(self, bus, remote):
         bus_name = dbus.service.BusName(self.SERVICE, bus=bus)
         app.get().playlist.player().add_listener(self)
 
@@ -64,35 +91,31 @@ class MPRIS(dbus.service.Object, util.Listener):
         self._update_player_props(emit=False)
 
         dbus.service.Object.__init__(self, bus, self.OBJECT, bus_name=bus_name)
+        self.remote = remote
 
     @dbus.service.method(dbus_interface=MP_IFACE, in_signature="", out_signature="")
     def Quit(self):
-        print("quit()")
+        self.remote.quit()
 
     @dbus.service.method(dbus_interface=PLAYER_IFACE, in_signature="", out_signature="")
     def Next(self):
-        print("next()")
-        pass
+        self.remote.next()
 
     @dbus.service.method(dbus_interface=PLAYER_IFACE, in_signature="", out_signature="")
     def Previous(self):
-        print("previous()")
-        pass
+        self.remove.prev()
 
     @dbus.service.method(dbus_interface=PLAYER_IFACE, in_signature="", out_signature="")
     def Pause(self):
-        print("pause()")
-        pass
+        self.remote.pause()
 
     @dbus.service.method(dbus_interface=PLAYER_IFACE, in_signature="", out_signature="")
     def PlayPause(self):
-        print("playpause()")
-        pass
+        self.remote.playpause()
 
     @dbus.service.method(dbus_interface=PLAYER_IFACE, in_signature="", out_signature="")
     def Stop(self):
-        print("stop()")
-        pass
+        self.remote.stop()
 
     @dbus.service.method(
         dbus_interface=PLAYER_IFACE, in_signature="x", out_signature=""
@@ -179,7 +202,6 @@ class MPRIS(dbus.service.Object, util.Listener):
             self.PropertiesChanged(PLAYER_IFACE, props, [])
 
     def _set_cover(self, track):
-        print("in")
         album = os.path.dirname(track.path)
         if album == self._cover_album:
             return
@@ -197,7 +219,6 @@ class MPRIS(dbus.service.Object, util.Listener):
             open(self._cover_path, "wb").write(art)
 
         self._cover_album = track.album
-        print("out")
 
 
 class Server(dbus.service.Object):
@@ -218,40 +239,38 @@ class Server(dbus.service.Object):
         bus_name = dbus.service.BusName(DBUS_SERVICE, bus=bus)
         dbus.service.Object.__init__(self, bus, DBUS_OBJECT, bus_name=bus_name)
         self.ui = ui
-        self.mpris = MPRIS(bus)
+        self.remote = Remote(self.ui)
+        self.mpris = MPRIS(bus, self.remote)
 
     @dbus.service.method(
         dbus_interface=REMOTE_CONTROL_IFACE, in_signature="", out_signature=""
     )
     def playpause(self):
-        if not self.ui.playlist.albums and not self.ui.playlist.is_playing():
-            self.ui.driver.pick_next(play=True)
-        else:
-            self.ui.playlist.playpause()
+        self.remote.playpause()
 
     @dbus.service.method(
         dbus_interface=REMOTE_CONTROL_IFACE, in_signature="", out_signature=""
     )
     def stop(self):
-        self.ui.playlist.stop()
+        self.remote.stop()
 
     @dbus.service.method(
         dbus_interface=REMOTE_CONTROL_IFACE, in_signature="", out_signature=""
     )
     def quit(self):
-        self.ui.handleQuit()
+        self.remote.quit()
 
     @dbus.service.method(
         dbus_interface=REMOTE_CONTROL_IFACE, in_signature="", out_signature=""
     )
     def next(self):
-        self.ui.playlist.next()
+        self.remote.next()
 
     @dbus.service.method(
         dbus_interface=REMOTE_CONTROL_IFACE, in_signature="", out_signature=""
     )
     def prev(self):
-        self.ui.playlist.prev()
+        self.remote.prev()
 
     @dbus.service.method(
         dbus_interface=REMOTE_CONTROL_IFACE, in_signature="", out_signature=""
@@ -263,7 +282,7 @@ class Server(dbus.service.Object):
         dbus_interface=REMOTE_CONTROL_IFACE, in_signature="", out_signature=""
     )
     def osd(self):
-        player = self.ui.osd.show_osd(None)
+        self.ui.osd.show_osd(None)
 
 
 def send(cmd):
