@@ -4,16 +4,12 @@ import collections
 import util
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QPixmap
-from PyQt5.QtWidgets import QDialog, QListWidgetItem, QWidget
-
-AlbumEntryBase = util.compile_ui("browser_album.ui")
+from PyQt5.QtWidgets import QListWidgetItem
 
 
-class AlbumEntry(QWidget, AlbumEntryBase):
-    def __init__(self, album):
-        QWidget.__init__(self)
-        AlbumEntryBase.__init__(self)
-        self.setupUi(self)
+class AlbumEntry(util.compile_ui("browser_album.ui")):
+    def __init__(self, parent, album):
+        super().__init__(parent)
         self.album = album
 
         cover = album.tracks[0].cover_art()
@@ -28,10 +24,9 @@ class AlbumEntry(QWidget, AlbumEntryBase):
         self.lYear.setText(str(album.year))
 
 
-class ScanDialog(QDialog):
+class ScanDialog(util.compile_ui("rescan.ui")):
     def __init__(self, parent):
-        QDialog.__init__(self, parent)
-        util.init_ui(self, "rescan.ui")
+        super().__init__(parent)
         self.lScanState.setText("Scanning...")
         self._parent = parent
 
@@ -43,10 +38,9 @@ class ScanDialog(QDialog):
         self._parent.scan_done()
 
 
-class BrowseDialog(QDialog):
+class BrowseDialog(util.compile_ui("browser.ui")):
     def __init__(self, parent):
-        QDialog.__init__(self, parent)
-        util.init_ui(self, "browser.ui")
+        super().__init__(parent)
         self.bRescan.clicked.connect(self._rescan)
         self.bClose.clicked.connect(self.close)
         self.albums.itemActivated.connect(self._add_album)
@@ -57,7 +51,7 @@ class BrowseDialog(QDialog):
 
     def closeEvent(self, e):
         util.save_ui(self, "browser")
-        QDialog.closeEvent(self, e)
+        super().closeEvent(e)
 
     def _add_album(self, item):
         e = self.albums.itemWidget(item)
@@ -118,7 +112,7 @@ class BrowseDialog(QDialog):
         albums = self.artists_map.get(item.text())
 
         for a in albums:
-            ui = AlbumEntry(a)
+            ui = AlbumEntry(self.albums, a)
             i = QListWidgetItem(self.albums)
             i.setFlags(i.flags() & ~Qt.ItemIsSelectable)
             i.setSizeHint(ui.sizeHint())

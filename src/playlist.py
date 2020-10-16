@@ -12,10 +12,6 @@ from PyQt5.QtWidgets import (
 )
 
 
-AlbumUIBase = util.compile_ui("album.ui")
-TrackUIBase = util.compile_ui("track.ui")
-
-
 class Track:
     def __init__(self, track, index, skip=False):
         self.info = track
@@ -211,21 +207,17 @@ class Playlist(util.ConfigObj, util.Listener, util.EventSource):
         self.fire_event(util.Listener.playlist_changed)
 
 
-class AlbumUI(QWidget, AlbumUIBase):
+class AlbumUI(util.compile_ui("album.ui")):
     def __init__(self, parent, album):
-        QWidget.__init__(self, parent)
-        AlbumUIBase.__init__(self)
-        self.setupUi(self)
+        super().__init__(parent)
         self.album = album
         self.lArtist.setText(album.info.artist)
         self.lAlbum.setText(album.info.title)
 
 
-class TrackUI(QWidget, TrackUIBase):
+class TrackUI(util.compile_ui("track.ui")):
     def __init__(self, ui, track):
-        QWidget.__init__(self, ui.playlistUI)
-        TrackUIBase.__init__(self)
-        self.setupUi(self)
+        super().__init__(ui.playlistUI)
         self.track = track
         self.ui = ui
 

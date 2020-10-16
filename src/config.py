@@ -5,11 +5,9 @@ import util
 from PyQt5.QtWidgets import QDialog, QFileDialog
 
 
-class ConfigDialog(QDialog):
+class ConfigDialog(util.compile_ui("config.ui")):
     def __init__(self, parent=None):
-        QDialog.__init__(self, parent)
-        util.init_ui(self, "config.ui")
-
+        super().__init__(parent)
         self.lSources.clear()
         for path in app.get().collection.locations:
             self.lSources.addItem(path)

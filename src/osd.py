@@ -2,14 +2,11 @@
 import util
 from PyQt5.QtCore import Qt, QPoint, QTimer
 from PyQt5.QtGui import QGuiApplication, QPixmap
-from PyQt5.QtWidgets import QMainWindow
 
 
-class OSD(QMainWindow):
+class OSD(util.compile_ui("osd.ui")):
     def __init__(self, playlist):
-        QMainWindow.__init__(self)
-        util.init_ui(self, "osd.ui")
-
+        super().__init__()
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
         self.setWindowOpacity(0.80)
         self.timer = None

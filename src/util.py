@@ -141,14 +141,17 @@ class PixmapCache:
         return pixmap
 
 
-def init_ui(widget, src):
-    path = os.path.join(os.path.dirname(__file__), "ui", src)
-    uic.loadUi(path, widget)
-
-
 def compile_ui(src):
     path = os.path.join(os.path.dirname(__file__), "ui", src)
-    return uic.loadUiType(path)[0]
+    form, qtclass = uic.loadUiType(path)
+
+    class _WidgetBase(form, qtclass):
+        def __init__(self, parent=None):
+            qtclass.__init__(self, parent)
+            form.__init__(self)
+            self.setupUi(self)
+
+    return _WidgetBase
 
 
 def restore_ui(widget, name):

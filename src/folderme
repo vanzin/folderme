@@ -15,7 +15,9 @@ import sys
 import time
 import util
 from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QMainWindow, QMenu, QSystemTrayIcon
+from PyQt5.QtWidgets import QMenu, QSystemTrayIcon
+
+BaseMainWindow = util.compile_ui("main.ui")
 
 
 class TrayIcon(QSystemTrayIcon, util.Listener):
@@ -62,11 +64,10 @@ class TrayIcon(QSystemTrayIcon, util.Listener):
         self.setToolTip(f"Stopped")
 
 
-class MainWindow(QMainWindow, util.EventSource, util.Listener):
+class MainWindow(BaseMainWindow, util.EventSource, util.Listener):
     def __init__(self, args):
-        QMainWindow.__init__(self)
+        BaseMainWindow.__init__(self)
         util.EventSource.__init__(self)
-        util.init_ui(self, "main.ui")
 
         c = app.get().collection
         c.add_listener(self)
@@ -113,16 +114,16 @@ class MainWindow(QMainWindow, util.EventSource, util.Listener):
         app.get().exit()
 
     def resizeEvent(self, e):
-        QMainWindow.resizeEvent(self, e)
+        super().resizeEvent(e)
         self.fire_event(util.Listener.ui_resized, self)
 
     def showEvent(self, e):
-        QMainWindow.showEvent(self, e)
+        super().showEvent(e)
         self.fire_event(util.Listener.ui_resized, self)
 
     def closeEvent(self, e):
         util.save_ui(self, "main")
-        QMainWindow.closeEvent(self, e)
+        super().closeEvent(e)
 
     def show_browser(self):
         browser.BrowseDialog(self).show()
