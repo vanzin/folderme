@@ -1,6 +1,8 @@
 # SPDX-License-Identifier: BSD-2-Clause
 import jsonpickle
 import os
+import time
+from contextlib import contextmanager
 from PyQt5 import uic
 from PyQt5.QtGui import QPixmap, QPixmapCache
 from PyQt5.QtCore import Qt, QSettings
@@ -204,3 +206,11 @@ def set_pixmap(label, pixmap):
     w = label.width()
     scaled = pixmap.scaled(w, h, Qt.KeepAspectRatio, Qt.SmoothTransformation)
     label.setPixmap(scaled)
+
+
+@contextmanager
+def profile(name):
+    t1 = int(time.time() * 1000)
+    yield
+    t2 = int(time.time() * 1000)
+    print(f"{name} took {t2 - t1} ms")
