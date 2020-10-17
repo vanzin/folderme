@@ -65,6 +65,7 @@ class Scrobbler(util.Listener):
 
     def _run(self):
         while self.running:
+            self.event.clear()
             self._drain()
             self.event.wait()
 
