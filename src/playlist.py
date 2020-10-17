@@ -312,8 +312,10 @@ class UIAdapter:
         self.ui.playlistUI.setItemWidget(item, widget)
 
     def _play_item(self, item):
-        track_ui = self.ui.playlistUI.itemWidget(item)
-        self.ui.playlist.play(track_ui.track)
+        track = self.ui.playlistUI.itemWidget(item).track
+        while track.info.album != app.get().playlist.albums[0].info.title:
+            app.get().playlist.remove_album(app.get().playlist.albums[0])
+        app.get().playlist.play(track)
 
     def _handle_key_released(self, event):
         if event.key() == Qt.Key_Delete:
