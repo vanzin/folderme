@@ -17,37 +17,32 @@ class Player(util.EventSource):
         util.EventSource.__init__(self)
         self._player = QMediaPlayer(QApplication.instance())
         self._player.mediaStatusChanged.connect(self._handleStatusChange)
-        self._player.stateChanged.connect(self._handleStateChange)
         self._track = None
 
     def _handleStatusChange(self, status):
         if status == self._player.EndOfMedia:
             self.fire_event(util.Listener.track_ended, self._track)
 
-    def _handleStateChange(self, state):
-        if state == self._player.StoppedState:
-            self.fire_event(util.Listener.track_stopped, self._track)
-        elif state == self._player.PlayingState:
-            self.fire_event(util.Listener.track_playing, self._track)
-        elif state == self._player.PausedState:
-            self.fire_event(util.Listener.track_paused, self._track)
-
     def play(self, track=None):
+        fire_event = not self.is_playing()
         if track:
             print(f"Playing track {track.path}")
             self.set_track(track)
-        fire_event = self.is_playing()
+            fire_event = True
         if self._track:
             self._player.play()
-        if fire_event:
-            self.fire_event(util.Listener.track_playing, self._track)
+            if fire_event:
+                self.fire_event(util.Listener.track_playing, self._track)
 
     def pause(self):
         if self.is_playing():
             self._player.pause()
+            self.fire_event(util.Listener.track_paused, self._track)
 
     def stop(self):
-        self._player.stop()
+        if self.is_playing() or self.is_paused():
+            self._player.stop()
+            self.fire_event(util.Listener.track_stopped, self._track)
 
     def is_playing(self):
         return self._player.state() == self._player.PlayingState

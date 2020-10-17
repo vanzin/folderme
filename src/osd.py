@@ -7,7 +7,12 @@ from PyQt5.QtGui import QGuiApplication, QPixmap
 class OSD(util.compile_ui("osd.ui")):
     def __init__(self, playlist):
         super().__init__()
-        self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
+        self.setFocusPolicy(Qt.NoFocus)
+        self.setWindowFlags(
+            Qt.FramelessWindowHint
+            | Qt.WindowStaysOnTopHint
+            | Qt.WindowDoesNotAcceptFocus
+        )
         self.setWindowOpacity(0.80)
         self.timer = None
         self.playlist = playlist

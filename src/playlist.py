@@ -234,7 +234,6 @@ class TrackUI(util.compile_ui("track.ui")):
         font = self.lTitle.font()
         font.setItalic(self.track.skip)
         self.lTitle.setFont(font)
-        self.repaint()
 
         icon = "stop.png" if self.track.stop_after else "empty.png"
         util.set_pixmap(self.lStopAfter, app.get().pixmaps.get_icon(icon))
@@ -277,8 +276,6 @@ class UIAdapter:
             if isinstance(widget, TrackUI):
                 widget.set_playing(i == idx)
 
-        self.ui.playlistUI.repaint()
-
     def _update_playlist(self):
         self.ui.playlistUI.clear()
 
@@ -301,7 +298,6 @@ class UIAdapter:
             util.set_pixmap(album_ui.cover, cover)
 
         self._update_track(app.get().playlist.current_track())
-        self.ui.playlistUI.repaint()
 
     def _update_cover(self):
         if self._cover_img:
