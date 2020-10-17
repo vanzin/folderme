@@ -76,7 +76,7 @@ class MainWindow(BaseMainWindow, util.EventSource, util.Listener):
         p.init_ui(self)
         self.osd = osd.OSD(p)
 
-        self.driver = randomizer.Randomizer()
+        self.driver = randomizer.Randomizer.load()
 
         self.playPause.clicked.connect(self.handlePlayPause)
         self.quit.clicked.connect(self.handleQuit)
@@ -110,6 +110,7 @@ class MainWindow(BaseMainWindow, util.EventSource, util.Listener):
 
     def handleQuit(self):
         self.fire_event(util.Listener.ui_exit)
+        self.driver.save()
         util.save_ui(self, "main")
         app.get().exit()
 

@@ -6,12 +6,23 @@ import time
 import util
 
 
-class Randomizer(util.Listener):
+class Randomizer(util.ConfigObj, util.Listener):
     def __init__(self):
-        self.rnd = random.Random(time.time())
+        self.history = []
+        self._rnd = random.Random(time.time())
+        self._now_playing = None
         app.get().playlist.add_listener(self)
 
+    def track_playing(self, track):
+        self._now_playing = track.artist
+
     def playlist_ended(self):
+        if self._now_playing:
+            self.history.append(self._now_playing)
+            self._now_playing = None
+            if len(self.history) > app.get().bias:
+                del self.history[0]
+
         self.pick_next(play=True)
 
     def pick_next(self, play=False):
@@ -19,9 +30,9 @@ class Randomizer(util.Listener):
             print("No albums.")
             return
 
-        ignore = [x.info.artist for x in app.get().playlist.albums]
+        ignore = self.history + [x.info.artist for x in app.get().playlist.albums]
         while True:
-            next = self.rnd.choice(app.get().collection.albums)
+            next = self._rnd.choice(app.get().collection.albums)
             if next.artist in ignore:
                 continue
 
