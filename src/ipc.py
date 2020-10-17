@@ -184,6 +184,7 @@ class MPRIS(dbus.service.Object, util.Listener):
             meta.update(
                 {
                     "mpris:trackid": f"{DBUS_OBJECT}/{track.trackno}",
+                    "mpris:length": dbus.Int64(track.duration_ms),
                     "xesam:album": track.album,
                     "xesam:artist": track.artist,
                     "xesam:title": track.title,
