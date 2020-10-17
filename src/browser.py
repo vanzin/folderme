@@ -25,7 +25,7 @@ class AlbumEntry(util.compile_ui("browser_album.ui")):
 
 
 class ScanDialog(util.compile_ui("rescan.ui")):
-    def __init__(self, parent):
+    def __init__(self, parent=None):
         super().__init__(parent)
         self.lScanState.setText("Scanning...")
         self._parent = parent
@@ -35,7 +35,8 @@ class ScanDialog(util.compile_ui("rescan.ui")):
 
     def scan_done(self):
         self.close()
-        self._parent.scan_done()
+        if self._parent:
+            self._parent.scan_done()
 
 
 class BrowseDialog(util.compile_ui("browser.ui")):

@@ -152,6 +152,11 @@ def start(args):
         cfg = config.ConfigDialog()
         cfg.exec()
 
+    if app.get().collection.needs_rescan():
+        dlg = browser.ScanDialog()
+        app.get().collection.scan(dlg)
+        dlg.exec()
+
     mainUI = MainWindow(args)
 
     if not args.no_dbus:

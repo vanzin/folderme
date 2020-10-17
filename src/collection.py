@@ -159,8 +159,12 @@ class Collection(util.ConfigObj, util.EventSource):
         util.EventSource.__init__(self)
         self.albums = []
         self.locations = []
+        self.version = -1
         self._scanner = None
         self._by_path = None
+
+    def needs_rescan(self):
+        return self.version != METADATA_VERSION
 
     def scan(self, listener=None):
         if self._scanner:
@@ -174,6 +178,8 @@ class Collection(util.ConfigObj, util.EventSource):
         self._scanner.start()
 
     def scan_done(self):
+        self.version = METADATA_VERSION
+        self.save()
         self._scanner = None
         self.fire_event(util.Listener.collection_changed)
 
