@@ -4,6 +4,7 @@ import hashlib
 import http
 import media
 import os
+import re
 import requests
 import sys
 import threading
@@ -17,6 +18,8 @@ API_URL = "https://ws.audioscrobbler.com/2.0/"
 
 SETTINGS_GRP = "last.fm"
 SETTINGS_SESSION_KEY = "session_key"
+
+MULTI_DISC_RE = re.compile(r"(.*)\s+\(Disc [0-9]+\)")
 
 
 def _check_response(res):
@@ -87,9 +90,14 @@ class Scrobbler(util.Listener):
                 self.cache.pop()
 
     def _scrobble(self, s):
+        album = s.album
+        m = MULTI_DISC_RE.match(album)
+        if m:
+            album = m.group(1)
+
         info = {
             "artist": s.artist,
-            "album": s.album,
+            "album": album,
             "track": s.title,
             "api_key": API_KEY,
             "sk": self.session_key,
