@@ -55,6 +55,12 @@ class MPRIS(dbus.service.Object, util.Listener):
         bus_name = dbus.service.BusName(self.SERVICE, bus=bus)
         app.get().playlist.player().add_listener(self)
 
+        self._covers_dir = os.path.join(util.config_dir(), "covers")
+        if not os.path.isdir(self._covers_dir):
+            os.mkdir(self._covers_dir)
+        for f in os.listdir(self._covers_dir):
+            os.unlink(os.path.join(self._covers_dir, f))
+
         self._cover_path = None
         self._cover_uri = None
         self._cover_album = None
@@ -218,7 +224,7 @@ class MPRIS(dbus.service.Object, util.Listener):
 
         art = track.cover_art()
         if art:
-            self._cover_path = os.path.join(util.config_dir(), str(uuid.uuid4()))
+            self._cover_path = os.path.join(self._covers_dir, str(uuid.uuid4()))
             self._cover_uri = pathlib.Path(self._cover_path).as_uri()
             open(self._cover_path, "wb").write(art)
 
