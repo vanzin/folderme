@@ -99,6 +99,9 @@ class Listener:
     def track_playing(self, track):
         pass
 
+    def track_position_changed(self, track, position):
+        pass
+
     def track_stopped(self, track):
         pass
 

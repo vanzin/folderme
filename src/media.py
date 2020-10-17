@@ -17,11 +17,15 @@ class Player(util.EventSource):
         util.EventSource.__init__(self)
         self._player = QMediaPlayer(QApplication.instance())
         self._player.mediaStatusChanged.connect(self._handleStatusChange)
+        self._player.positionChanged.connect(self._handlePositionChange)
         self._track = None
 
     def _handleStatusChange(self, status):
         if status == self._player.EndOfMedia:
             self.fire_event(util.Listener.track_ended, self._track)
+
+    def _handlePositionChange(self, position):
+        self.fire_event(util.Listener.track_position_changed, self._track, position)
 
     def play(self, track=None):
         fire_event = not self.is_playing()
@@ -55,7 +59,6 @@ class Player(util.EventSource):
         self.add_listener(adapter)
 
         self._player.durationChanged.connect(adapter.duration_changed)
-        self._player.positionChanged.connect(adapter.position_changed)
 
     def set_position(self, position):
         self._player.setPosition(position)
@@ -116,7 +119,7 @@ class UIAdapter(util.Listener):
         self.ui.tPosition.setMaximum(duration)
         self.duration = duration
 
-    def position_changed(self, position):
+    def track_position_changed(self, track, position):
         if self._slider_locked:
             return
 

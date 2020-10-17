@@ -76,7 +76,7 @@ class MPRIS(dbus.service.Object, util.Listener):
                 "CanPause": True,
                 "CanGoNext": True,
                 "CanGoPrevious": True,
-                "CanSeek": True,
+                "CanSeek": False,
                 "CanControl": True,
                 "Volume": 1.0,
                 "Position": dbus.Int64(0),
@@ -121,7 +121,6 @@ class MPRIS(dbus.service.Object, util.Listener):
         dbus_interface=PLAYER_IFACE, in_signature="x", out_signature=""
     )
     def Seek(self, ms):
-        print("seek()")
         pass
 
     @dbus.service.method(
@@ -135,21 +134,18 @@ class MPRIS(dbus.service.Object, util.Listener):
         dbus_interface=PROPS_IFACE, in_signature="ss", out_signature="v"
     )
     def Get(self, iface, prop):
-        print(f"get: {iface} {prop}")
         return self.props.get(iface, {}).get(prop)
 
     @dbus.service.method(
         dbus_interface=PROPS_IFACE, in_signature="ssv", out_signature=""
     )
     def Set(self, iface, prop, value):
-        print(f"set: {iface}/{prop} = {value}")
         pass
 
     @dbus.service.method(
         dbus_interface=PROPS_IFACE, in_signature="s", out_signature="a{sv}"
     )
     def GetAll(self, iface):
-        print(f"get all {iface}")
         return self.props.get(iface, {})
 
     @dbus.service.signal(dbus_interface=PROPS_IFACE, signature="sa{sv}as")
@@ -162,6 +158,13 @@ class MPRIS(dbus.service.Object, util.Listener):
     def track_playing(self, track):
         self._set_cover(track)
         self._update_player_props()
+
+    def track_position_changed(self, track, position):
+        update = {
+            "Position": dbus.Int64(position * 1000),
+        }
+        self.props[PLAYER_IFACE].update(update)
+        self.PropertiesChanged(PLAYER_IFACE, update, [])
 
     def track_stopped(self, track):
         self._update_player_props()
