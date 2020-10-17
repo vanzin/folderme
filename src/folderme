@@ -137,13 +137,7 @@ class MainWindow(BaseMainWindow, util.EventSource, util.Listener):
         self.repaint()
 
     def rescan(self):
-        dlg = browser.ScanDialog(self)
-        app.get().collection.scan(dlg)
-        dlg.setModal(True)
-        dlg.exec()
-
-    def scan_done(self):
-        pass
+        app.get().collection.scan(self)
 
 
 def start(args):
@@ -154,9 +148,7 @@ def start(args):
         cfg.exec()
 
     if app.get().collection.needs_rescan():
-        dlg = browser.ScanDialog()
-        app.get().collection.scan(dlg)
-        dlg.exec()
+        app.get().collection.scan()
 
     mainUI = MainWindow(args)
 

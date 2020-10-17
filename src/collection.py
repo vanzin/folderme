@@ -112,14 +112,6 @@ class Album(util.ConfigObj):
         return "Album({})".format(str(self.__dict__))
 
 
-class ScanListener:
-    def scan_progress(self, path):
-        pass
-
-    def scan_done(self):
-        pass
-
-
 class Scanner(QThread, util.EventSource):
     progress = pyqtSignal(str)
     done = pyqtSignal()
@@ -154,6 +146,16 @@ class Scanner(QThread, util.EventSource):
         self.done.emit()
 
 
+class ScanDialog(util.compile_ui("rescan.ui")):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.lScanState.setText("Scanning...")
+        self._parent = parent
+
+    def scan_progress(self, path):
+        self.lScanState.setText(f"Scanning {path}...")
+
+
 class Collection(util.ConfigObj, util.EventSource):
     def __init__(self):
         util.EventSource.__init__(self)
@@ -166,16 +168,17 @@ class Collection(util.ConfigObj, util.EventSource):
     def needs_rescan(self):
         return self.version != METADATA_VERSION
 
-    def scan(self, listener=None):
+    def scan(self, parent=None):
+        dlg = ScanDialog(parent)
         if self._scanner:
             raise Exception("Scanning already in progress.")
 
         self._scanner = Scanner(self)
         self._scanner.done.connect(self.scan_done)
-        if listener:
-            self._scanner.progress.connect(listener.scan_progress)
-            self._scanner.done.connect(listener.scan_done)
+        self._scanner.done.connect(dlg.close)
+        self._scanner.progress.connect(dlg.scan_progress)
         self._scanner.start()
+        dlg.exec()
 
     def scan_done(self):
         self.version = METADATA_VERSION

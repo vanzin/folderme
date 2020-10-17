@@ -24,21 +24,6 @@ class AlbumEntry(util.compile_ui("browser_album.ui")):
         self.lYear.setText(str(album.year))
 
 
-class ScanDialog(util.compile_ui("rescan.ui")):
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self.lScanState.setText("Scanning...")
-        self._parent = parent
-
-    def scan_progress(self, path):
-        self.lScanState.setText(f"Scanning {path}...")
-
-    def scan_done(self):
-        self.close()
-        if self._parent:
-            self._parent.scan_done()
-
-
 class BrowseDialog(util.compile_ui("browser.ui")):
     def __init__(self, parent):
         super().__init__(parent)
@@ -121,11 +106,7 @@ class BrowseDialog(util.compile_ui("browser.ui")):
             self.albums.setItemWidget(i, ui)
 
     def _rescan(self):
-        dlg = ScanDialog(self)
-        self.bRescan.setEnabled(False)
-        self.bClose.setEnabled(False)
-        app.get().collection.scan(dlg)
-        dlg.show()
+        app.get().collection.scan(self)
 
     def scan_done(self):
         app.get().collection.save()

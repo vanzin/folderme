@@ -31,10 +31,7 @@ class ConfigDialog(util.compile_ui("config.ui")):
     def _ok(self):
         sources = [self.lSources.item(x).text() for x in range(self.lSources.count())]
         app.get().collection.locations = sources
-
-        dlg = browser.ScanDialog(self)
-        app.get().collection.scan(dlg)
-        dlg.exec()
+        app.get().collection.scan(self)
 
         app.get().collection.save()
         app.get().set_bias(self.sbBias.value())
@@ -42,6 +39,3 @@ class ConfigDialog(util.compile_ui("config.ui")):
 
     def _cancel(self):
         self.close()
-
-    def scan_done(self):
-        pass
