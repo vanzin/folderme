@@ -129,7 +129,7 @@ class Scanner(QThread, util.EventSource):
                 if files:
                     a = self.collection.get_album(root)
                     if a and a.version == METADATA_VERSION:
-                        mtime = min(os.stat(f, dir_fd=dirfd).st_mtime for f in files)
+                        mtime = max(os.stat(f, dir_fd=dirfd).st_mtime for f in files)
                         if mtime <= a.mtime:
                             albums.append(a)
                             continue
