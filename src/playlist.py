@@ -213,6 +213,7 @@ class AlbumUI(util.compile_ui("album.ui")):
         self.album = album
         self.lArtist.setText(album.info.artist)
         self.lAlbum.setText(album.info.title)
+        self.lYear.setText(str(album.info.year))
 
 
 class TrackUI(util.compile_ui("track.ui")):
@@ -268,6 +269,7 @@ class UIAdapter:
     def _update_track(self, track):
         self.ui.plArtist.setText(track.info.artist)
         self.ui.plAlbum.setText(track.info.album)
+        self.ui.plYear.setText(str(track.info.year))
 
         idx = track.index + 1
         for i in range(self.ui.playlistUI.count()):
