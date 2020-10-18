@@ -2,6 +2,7 @@
 import app
 import media
 import util
+from PyQt5.QtCore import QTimer
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QListWidgetItem
 
@@ -109,8 +110,6 @@ class Playlist(util.ConfigObj, util.Listener, util.EventSource):
         track.stop_after = new_value
         self.fire_event(util.Listener.playlist_changed)
 
-        # TODO: show OSD that this happened
-
     def next(self):
         while True:
             album = self.albums[0]
@@ -161,6 +160,9 @@ class Playlist(util.ConfigObj, util.Listener, util.EventSource):
             track.stop_after = False
             self._player.stop(fire_event=False)
 
+        QTimer.singleShot(0, self._post_track_ended)
+
+    def _post_track_ended(self):
         self.next()
         self._inhibity_play = False
 

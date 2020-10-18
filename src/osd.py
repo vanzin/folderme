@@ -30,6 +30,10 @@ class OSD(util.compile_ui("osd.ui")):
     def track_stopped(self, track):
         self.show_osd(track)
 
+    def track_changed(self, track):
+        if not self.playlist.is_playing():
+            self.show_osd(track)
+
     def show_osd(self, track):
         if self.timer:
             self.timer.stop()

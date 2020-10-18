@@ -285,6 +285,7 @@ class Server(dbus.service.Object):
     )
     def stop_after_track(self):
         app.get().playlist.stop_after(app.get().playlist.current_track())
+        # TODO: show OSD that this happened
 
     @dbus.service.method(
         dbus_interface=REMOTE_CONTROL_IFACE, in_signature="", out_signature=""
