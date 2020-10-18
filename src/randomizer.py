@@ -1,8 +1,8 @@
 # SPDX-License-Identifier: BSD-2-Clause
-import app
-import playlist
 import random
 import time
+
+import app
 import util
 
 

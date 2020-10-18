@@ -1,11 +1,9 @@
 # SPDX-License-Identifier: BSD-2-Clause
 import app
-import sys
 import util
-
 from PyQt5.QtCore import QUrl
-from PyQt5.QtMultimedia import QMediaPlayer, QMediaContent
-from PyQt5.QtWidgets import QApplication
+from PyQt5.QtMultimedia import QMediaContent
+from PyQt5.QtMultimedia import QMediaPlayer
 
 
 class Player(util.EventSource):
@@ -15,7 +13,7 @@ class Player(util.EventSource):
 
     def __init__(self):
         util.EventSource.__init__(self)
-        self._player = QMediaPlayer(QApplication.instance())
+        self._player = QMediaPlayer(app.get())
         self._player.mediaStatusChanged.connect(self._handleStatusChange)
         self._player.positionChanged.connect(self._handlePositionChange)
         self._track = None

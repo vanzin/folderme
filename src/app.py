@@ -1,8 +1,9 @@
 # SPDX-License-Identifier: BSD-2-Clause
+import sys
+
 import collection
 import lastfm
 import playlist
-import sys
 import util
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QApplication

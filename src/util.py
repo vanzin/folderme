@@ -1,11 +1,15 @@
 # SPDX-License-Identifier: BSD-2-Clause
-import jsonpickle
 import os
 import time
 from contextlib import contextmanager
+
+import jsonpickle
 from PyQt5 import uic
-from PyQt5.QtGui import QFontMetrics, QPixmap, QPixmapCache
-from PyQt5.QtCore import Qt, QSettings
+from PyQt5.QtCore import QSettings
+from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QFontMetrics
+from PyQt5.QtGui import QPixmap
+from PyQt5.QtGui import QPixmapCache
 
 SETTINGS = QSettings("vanzin.org", "folderme")
 

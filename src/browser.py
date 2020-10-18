@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: BSD-2-Clause
-import app
 import collections
+
+import app
 import util
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QPixmap

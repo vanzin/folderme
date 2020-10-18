@@ -3,3 +3,8 @@ repos:
   rev: 20.8b1
   hooks:
   - id: black
+- repo: https://github.com/sqlalchemyorg/zimports/
+  rev: 0.2.0
+  hooks:
+  - id: zimports
+    args: [ "--style", "pycharm" ]

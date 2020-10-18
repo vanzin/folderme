@@ -1,21 +1,18 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: BSD-2-Clause
+import argparse
+import sys
 
 import app
-import argparse
 import browser
 import config
 import ipc
-import lastfm
-import media
 import osd
-import playlist
 import randomizer
-import sys
-import time
 import util
 from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QMenu, QSystemTrayIcon
+from PyQt5.QtWidgets import QMenu
+from PyQt5.QtWidgets import QSystemTrayIcon
 
 BaseMainWindow = util.compile_ui("main.ui")
 

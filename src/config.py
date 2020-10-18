@@ -1,8 +1,7 @@
 # SPDX-License-Identifier: BSD-2-Clause
 import app
-import browser
 import util
-from PyQt5.QtWidgets import QDialog, QFileDialog
+from PyQt5.QtWidgets import QFileDialog
 
 
 class ConfigDialog(util.compile_ui("config.ui")):

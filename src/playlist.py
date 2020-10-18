@@ -1,16 +1,9 @@
 # SPDX-License-Identifier: BSD-2-Clause
 import app
 import media
-import os
 import util
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QFontMetrics
-from PyQt5.QtWidgets import (
-    QListWidgetItem,
-    QGraphicsScene,
-    QGraphicsPixmapItem,
-    QWidget,
-)
+from PyQt5.QtWidgets import QListWidgetItem
 
 
 class Track:

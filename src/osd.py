@@ -1,7 +1,10 @@
 # SPDX-License-Identifier: BSD-2-Clause
 import util
-from PyQt5.QtCore import Qt, QPoint, QTimer
-from PyQt5.QtGui import QGuiApplication, QPixmap
+from PyQt5.QtCore import QPoint
+from PyQt5.QtCore import QTimer
+from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QGuiApplication
+from PyQt5.QtGui import QPixmap
 
 
 class OSD(util.compile_ui("osd.ui")):

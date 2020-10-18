@@ -1,16 +1,15 @@
 # SPDX-License-Identifier: BSD-2-Clause
-import argparse
 import hashlib
 import http
-import media
 import os
 import re
-import requests
 import sys
 import threading
 import time
-import util
 from xml.dom import minidom
+
+import requests
+import util
 
 API_KEY = "d6011cfd9d9a3bdedb3c3980e9cdab0e"
 SECRET = "353fa1593215d359123dc209c4101da8"

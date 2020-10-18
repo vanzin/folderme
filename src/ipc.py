@@ -1,15 +1,13 @@
 # SPDX-License-Identifier: BSD-2-Clause
+import os
+import pathlib
+import uuid
+
 import app
 import dbus
 import dbus.service
-import os
-import osd
-import pathlib
-import sys
 import util
-import uuid
 from dbus.mainloop.glib import DBusGMainLoop
-from PyQt5.QtWidgets import QApplication
 
 DBUS_SERVICE = "org.vanzin.FolderME"
 DBUS_OBJECT = "/org/vanzin/FolderME"

@@ -1,10 +1,12 @@
 # SPDX-License-Identifier: BSD-2-Clause
-import mutagen
 import os
+
+import mutagen
 import util
+from PyQt5.QtCore import QThread
+from PyQt5.QtCore import pyqtSignal
 from mutagen.easyid3 import EasyID3
 from mutagen.id3 import ID3
-from PyQt5.QtCore import QObject, QThread, pyqtSignal
 
 METADATA_VERSION = 2
 
