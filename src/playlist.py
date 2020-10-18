@@ -4,6 +4,7 @@ import media
 import os
 import util
 from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QFontMetrics
 from PyQt5.QtWidgets import (
     QListWidgetItem,
     QGraphicsScene,
@@ -221,8 +222,7 @@ class TrackUI(util.compile_ui("track.ui")):
         super().__init__(ui.playlistUI)
         self.track = track
         self.ui = ui
-
-        self.lTitle.setText(f"{track.info.trackno} - {track.info.title}")
+        self.text = f"{track.info.trackno} - {track.info.title}"
         self.lDuration.setText(util.ms_to_text(track.info.duration_ms))
         self.set_playing(False)
         self.update()
@@ -238,6 +238,21 @@ class TrackUI(util.compile_ui("track.ui")):
 
         icon = "stop.png" if self.track.stop_after else "empty.png"
         util.set_pixmap(self.lStopAfter, app.get().pixmaps.get_icon(icon))
+        self._set_title()
+
+    def resizeEvent(self, e):
+        self._set_title()
+        super().resizeEvent(e)
+
+    def _set_title(self):
+        font = self.lTitle.font()
+        fm = QFontMetrics(font)
+        elided = fm.elidedText(self.text, Qt.ElideRight, self.width() - 96)
+        self.lTitle.setText(elided)
+        if elided != self.text:
+            self.lTitle.setToolTip(self.track.info.title)
+        else:
+            self.lTitle.setToolTip(None)
 
 
 class UIAdapter:
