@@ -81,7 +81,6 @@ class Playlist(util.ConfigObj, util.Listener, util.EventSource):
             self.fire_event(util.Listener.playlist_changed)
         else:
             self._player.play(track=track.info)
-            self.fire_event(util.Listener.playlist_playing)
 
     def is_playing(self):
         return self._player.is_playing()

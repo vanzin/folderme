@@ -88,9 +88,6 @@ class Listener:
     def collection_changed(self):
         pass
 
-    def playlist_playing(self):
-        pass
-
     def playlist_changed(self):
         pass
 
