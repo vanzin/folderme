@@ -114,13 +114,12 @@ class Album(util.ConfigObj):
         return "Album({})".format(str(self.__dict__))
 
 
-class Scanner(QThread, util.EventSource):
+class Scanner(QThread):
     progress = pyqtSignal(str)
     done = pyqtSignal()
 
     def __init__(self, collection):
         QThread.__init__(self)
-        util.EventSource.__init__(self)
         self.collection = collection
 
     def run(self):
@@ -158,9 +157,8 @@ class ScanDialog(util.compile_ui("rescan.ui")):
         self.lScanState.setText(f"Scanning {path}...")
 
 
-class Collection(util.ConfigObj, util.EventSource):
+class Collection(util.ConfigObj):
     def __init__(self):
-        util.EventSource.__init__(self)
         self.albums = []
         self.locations = []
         self.version = -1
@@ -186,7 +184,7 @@ class Collection(util.ConfigObj, util.EventSource):
         self.version = METADATA_VERSION
         self.save()
         self._scanner = None
-        self.fire_event(util.Listener.collection_changed)
+        util.EventBus.send(util.Listener.collection_changed)
 
     def get_album(self, path):
         if not self._by_path:

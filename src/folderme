@@ -40,7 +40,7 @@ class TrayIcon(QSystemTrayIcon, util.Listener):
 
         self.activated.connect(self._activated)
         self.setToolTip("Stopped")
-        app.get().playlist.add_listener(self)
+        util.EventBus.add(self)
 
     def _activated(self, reason):
         if reason != self.Trigger:
@@ -62,13 +62,12 @@ class TrayIcon(QSystemTrayIcon, util.Listener):
         self.setToolTip(f"Stopped")
 
 
-class MainWindow(BaseMainWindow, util.EventSource, util.Listener):
+class MainWindow(BaseMainWindow, util.Listener):
     def __init__(self, args):
         BaseMainWindow.__init__(self)
-        util.EventSource.__init__(self)
 
         c = app.get().collection
-        c.add_listener(self)
+        util.EventBus.add(self)
 
         p = app.get().playlist
         p.init_ui(self)
@@ -106,18 +105,18 @@ class MainWindow(BaseMainWindow, util.EventSource, util.Listener):
         app.get().playlist.playpause()
 
     def handleQuit(self):
-        self.fire_event(util.Listener.ui_exit)
+        util.EventBus.send(util.Listener.ui_exit)
         self.driver.save()
         util.save_ui(self, "main")
         app.get().exit()
 
     def resizeEvent(self, e):
         super().resizeEvent(e)
-        self.fire_event(util.Listener.ui_resized, self)
+        util.EventBus.send(util.Listener.ui_resized, self)
 
     def showEvent(self, e):
         super().showEvent(e)
-        self.fire_event(util.Listener.ui_resized, self)
+        util.EventBus.send(util.Listener.ui_resized, self)
 
     def closeEvent(self, e):
         util.save_ui(self, "main")

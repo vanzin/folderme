@@ -6,13 +6,12 @@ from PyQt5.QtMultimedia import QMediaContent
 from PyQt5.QtMultimedia import QMediaPlayer
 
 
-class Player(util.EventSource):
+class Player:
     """
     Player encapsulates playing a single file.
     """
 
     def __init__(self):
-        util.EventSource.__init__(self)
         self._player = QMediaPlayer(app.get())
         self._player.mediaStatusChanged.connect(self._handleStatusChange)
         self._player.positionChanged.connect(self._handlePositionChange)
@@ -20,10 +19,10 @@ class Player(util.EventSource):
 
     def _handleStatusChange(self, status):
         if status == self._player.EndOfMedia:
-            self.fire_event(util.Listener.track_ended, self._track)
+            util.EventBus.send(util.Listener.track_ended, self._track)
 
     def _handlePositionChange(self, position):
-        self.fire_event(util.Listener.track_position_changed, self._track, position)
+        util.EventBus.send(util.Listener.track_position_changed, self._track, position)
 
     def play(self, track=None):
         fire_event = not self.is_playing()
@@ -34,18 +33,18 @@ class Player(util.EventSource):
         if self._track:
             self._player.play()
             if fire_event:
-                self.fire_event(util.Listener.track_playing, self._track)
+                util.EventBus.send(util.Listener.track_playing, self._track)
 
     def pause(self):
         if self.is_playing():
             self._player.pause()
-            self.fire_event(util.Listener.track_paused, self._track)
+            util.EventBus.send(util.Listener.track_paused, self._track)
 
     def stop(self, fire_event=True):
         if self.is_playing() or self.is_paused():
             self._player.stop()
             if fire_event:
-                self.fire_event(util.Listener.track_stopped, self._track)
+                util.EventBus.send(util.Listener.track_stopped, self._track)
 
     def is_playing(self):
         return self._player.state() == self._player.PlayingState
@@ -55,8 +54,7 @@ class Player(util.EventSource):
 
     def init_ui(self, ui):
         adapter = UIAdapter(ui, self)
-        self.add_listener(adapter)
-
+        util.EventBus.add(adapter)
         self._player.durationChanged.connect(adapter.duration_changed)
 
     def set_position(self, position):
@@ -71,7 +69,7 @@ class Player(util.EventSource):
     def set_track(self, track):
         self._player.setMedia(QMediaContent(QUrl("file:" + track.path)))
         self._track = track
-        self.fire_event(util.Listener.track_changed, track)
+        util.EventBus.send(util.Listener.track_changed, track)
 
 
 class UIAdapter(util.Listener):

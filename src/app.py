@@ -32,7 +32,7 @@ class FolderME(QApplication):
         self._playlist = playlist.Playlist.load()
         self._scrobbler = lastfm.get_scrobbler(not args.no_lastfm)
         if self._scrobbler:
-            self.playlist.add_listener(self._scrobbler)
+            util.EventBus.add(self._scrobbler)
 
         self._bias = 1
 

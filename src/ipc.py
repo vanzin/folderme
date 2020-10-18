@@ -52,7 +52,7 @@ class MPRIS(dbus.service.Object, util.Listener):
 
     def __init__(self, bus, remote):
         bus_name = dbus.service.BusName(self.SERVICE, bus=bus)
-        app.get().playlist.player().add_listener(self)
+        util.EventBus.add(self)
 
         self._covers_dir = os.path.join(util.config_dir(), "covers")
         if not os.path.isdir(self._covers_dir):

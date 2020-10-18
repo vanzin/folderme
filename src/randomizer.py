@@ -11,7 +11,7 @@ class Randomizer(util.ConfigObj, util.Listener):
         self.history = []
         self._rnd = random.Random(time.time())
         self._now_playing = None
-        app.get().playlist.add_listener(self)
+        util.EventBus.add(self)
 
     def track_playing(self, track):
         self._now_playing = track.artist

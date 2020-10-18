@@ -83,7 +83,7 @@ class Track(util.compile_ui("osd.ui"), BaseOSD):
     def __init__(self):
         super().__init__()
         BaseOSD.__init__(self)
-        app.get().playlist.player().add_listener(self)
+        util.EventBus.add(self)
 
     def track_playing(self, track):
         self.show_osd(track)

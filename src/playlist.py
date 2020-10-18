@@ -51,14 +51,13 @@ class Album(util.ConfigObj):
             self._tracks.append(Track(self.info.tracks[i], i, skip=i in skip))
 
 
-class Playlist(util.ConfigObj, util.Listener, util.EventSource):
+class Playlist(util.ConfigObj, util.Listener):
     def __init__(self):
-        util.EventSource.__init__(self)
         self.albums = []
         self.track_idx = 0
         self._player = media.Player()
-        self._player.add_listener(self)
         self._inhibity_play = False
+        util.EventBus.add(self)
 
     def playpause(self):
         if self._player.is_playing():
@@ -79,7 +78,7 @@ class Playlist(util.ConfigObj, util.Listener, util.EventSource):
         self.track_idx = track.index
         if self._inhibity_play:
             self._player.set_track(track=track.info)
-            self.fire_event(util.Listener.playlist_changed)
+            util.EventBus.send(util.Listener.playlist_changed)
         else:
             self._player.play(track=track.info)
 
@@ -108,7 +107,7 @@ class Playlist(util.ConfigObj, util.Listener, util.EventSource):
                     new_value = False
                 idx += 1
         track.stop_after = new_value
-        self.fire_event(util.Listener.playlist_changed)
+        util.EventBus.send(util.Listener.playlist_changed)
         return new_value
 
     def next(self):
@@ -123,7 +122,7 @@ class Playlist(util.ConfigObj, util.Listener, util.EventSource):
 
             del self.albums[0]
             if not self.albums:
-                self.fire_event(util.Listener.playlist_ended)
+                util.EventBus.send(util.Listener.playlist_ended)
                 return
 
     def prev(self):
@@ -140,7 +139,7 @@ class Playlist(util.ConfigObj, util.Listener, util.EventSource):
         self.albums = [Album(album)]
         self.track_idx = 0
         self.stop()
-        self.fire_event(util.Listener.playlist_changed)
+        util.EventBus.send(util.Listener.playlist_changed)
         if play:
             self.playpause()
 
@@ -148,10 +147,6 @@ class Playlist(util.ConfigObj, util.Listener, util.EventSource):
         if not self.albums:
             return None
         return self.albums[0].tracks[self.track_idx]
-
-    def add_listener(self, l):
-        util.EventSource.add_listener(self, l)
-        self._player.add_listener(l)
 
     def track_ended(self, _):
         track = self.current_track()
@@ -179,8 +174,7 @@ class Playlist(util.ConfigObj, util.Listener, util.EventSource):
                     first.tracks[i].stop_after = False
 
         adapter = UIAdapter(ui)
-        self.add_listener(adapter)
-        ui.add_listener(adapter)
+        util.EventBus.add(adapter)
         self._player.init_ui(ui)
 
     def player(self):
@@ -188,7 +182,7 @@ class Playlist(util.ConfigObj, util.Listener, util.EventSource):
 
     def add_album(self, album):
         self.albums.append(Album(album))
-        self.fire_event(util.Listener.playlist_changed)
+        util.EventBus.send(util.Listener.playlist_changed)
 
     def remove_album(self, album):
         stop = False
@@ -206,7 +200,7 @@ class Playlist(util.ConfigObj, util.Listener, util.EventSource):
             if play:
                 self.playpause()
 
-        self.fire_event(util.Listener.playlist_changed)
+        util.EventBus.send(util.Listener.playlist_changed)
 
 
 class AlbumUI(util.compile_ui("album.ui")):

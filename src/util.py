@@ -1,11 +1,13 @@
 # SPDX-License-Identifier: BSD-2-Clause
 import os
 import time
+import traceback
 from contextlib import contextmanager
 
 import jsonpickle
 from PyQt5 import uic
 from PyQt5.QtCore import QSettings
+from PyQt5.QtCore import QTimer
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QFontMetrics
 from PyQt5.QtGui import QPixmap
@@ -39,49 +41,42 @@ class ConfigObj:
             setattr(self, k, v)
 
     def save(self):
-        _init_pickler()
+        jsonpickle.set_preferred_backend("json")
+        jsonpickle.set_encoder_options("json", indent=2)
         path = os.path.join(config_dir(create=True), self.config_file_name())
         data = jsonpickle.encode(self)
         with open(path, "wt", encoding="utf-8") as out:
             out.write(data)
 
 
-class EventSource:
+class EventBus:
     """
-    Base class for objects that generate events. Handles listener registration and event
-    firing.
+    An event bus for `Listener` events.
     """
 
+    FIRING = False
     QUEUE = []
+    LISTENERS = []
 
-    @staticmethod
-    def _fire(src, handler, args):
-        """
-        Enqueue an event for firing. If this is the first event in the queue, this
-        call will block until the queue is empty (so that events are delivered in
-        the order they were fired).
-        """
-        owner = len(EventSource.QUEUE) == 0
-        EventSource.QUEUE.append((src, handler, args))
-        if not owner:
+    @classmethod
+    def add(cls, l):
+        cls.LISTENERS.append(l)
+
+    @classmethod
+    def send(cls, handler, *args):
+        if cls.FIRING:
+            QTimer.singleShot(0, lambda: cls.send(handler, *args))
             return
 
-        while EventSource.QUEUE:
-            s, h, a = EventSource.QUEUE[0]
-            for l in s._listeners:
-                m = getattr(l, h.__name__, None)
-                if m:
-                    m(*a)
-            del EventSource.QUEUE[0]
+        for l in cls.LISTENERS:
+            m = getattr(l, handler.__name__, None)
+            if m:
+                try:
+                    m(*args)
+                except:
+                    traceback.print_exc()
 
-    def __init__(self):
-        self._listeners = []
-
-    def add_listener(self, l):
-        self._listeners.append(l)
-
-    def fire_event(self, handler, *args):
-        EventSource._fire(self, handler, args)
+        cls.FIRING = False
 
 
 class Listener:
@@ -212,11 +207,6 @@ def config_dir(create=False):
     if create and not os.path.isdir(path):
         os.mkdir(path)
     return path
-
-
-def _init_pickler():
-    jsonpickle.set_preferred_backend("json")
-    jsonpickle.set_encoder_options("json", indent=2)
 
 
 def icon(name):
