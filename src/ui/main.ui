@@ -214,16 +214,6 @@
         </property>
        </widget>
       </item>
-      <item>
-       <widget class="QPushButton" name="quit">
-        <property name="focusPolicy">
-         <enum>Qt::TabFocus</enum>
-        </property>
-        <property name="text">
-         <string>Quit</string>
-        </property>
-       </widget>
-      </item>
      </layout>
     </item>
    </layout>

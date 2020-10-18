@@ -75,7 +75,6 @@ class MainWindow(BaseMainWindow, util.Listener):
         self.driver = randomizer.Randomizer.load()
 
         self.playPause.clicked.connect(self.handlePlayPause)
-        self.quit.clicked.connect(self.handleQuit)
         self.next.clicked.connect(p.next)
         self.previous.clicked.connect(p.prev)
         self.stop.clicked.connect(p.stop)
@@ -93,6 +92,9 @@ class MainWindow(BaseMainWindow, util.Listener):
 
         a = tools.addAction("Config")
         a.triggered.connect(self.show_config)
+
+        a = tools.addAction("Quit")
+        a.triggered.connect(self.handleQuit)
 
         self.bTools.setMenu(tools)
 
