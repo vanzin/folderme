@@ -50,6 +50,7 @@ class TrayIcon(QSystemTrayIcon, util.Listener):
             self.ui.hide()
         else:
             self.ui.show()
+            self.ui.raise_()
 
     def track_playing(self, track):
         self.setToolTip(f"Playing: {track.artist} - {track.title}")
