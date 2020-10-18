@@ -153,11 +153,12 @@ class Playlist(util.ConfigObj, util.Listener, util.EventSource):
 
     def track_ended(self, _):
         track = self.current_track()
+        self._inhibity_play = track.stop_after
+
         if track.stop_after:
             track.stop_after = False
             self._player.stop(fire_event=False)
 
-        self._inhibity_play = True
         self.next()
         self._inhibity_play = False
 
