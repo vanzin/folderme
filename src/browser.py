@@ -20,7 +20,7 @@ class AlbumEntry(util.compile_ui("browser_album.ui")):
             pixmap.load(util.icon("blank.jpg"))
 
         util.set_pixmap(self.cover, pixmap)
-        self.lAlbum.setText(album.title)
+        self._title_helper = util.ElisionHelper(self, self.lAlbum, album.title, 128)
         self.lYear.setText(str(album.year))
 
 

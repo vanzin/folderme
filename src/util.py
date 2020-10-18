@@ -4,7 +4,7 @@ import os
 import time
 from contextlib import contextmanager
 from PyQt5 import uic
-from PyQt5.QtGui import QPixmap, QPixmapCache
+from PyQt5.QtGui import QFontMetrics, QPixmap, QPixmapCache
 from PyQt5.QtCore import Qt, QSettings
 
 SETTINGS = QSettings("vanzin.org", "folderme")
@@ -144,6 +144,33 @@ class PixmapCache:
             pixmap.load(icon(name))
             self._cache.insert(name, pixmap)
         return pixmap
+
+
+class ElisionHelper:
+    def __init__(self, widget, label, text, padding):
+        self.widget = widget
+        self.label = label
+        self.text = text
+        self.padding = padding
+
+        self._widget_resized = widget.resizeEvent
+        widget.resizeEvent = self._resized
+        self._set_label_text()
+
+    def _resized(self, e):
+        self._widget_resized(e)
+        self._set_label_text()
+
+    def _set_label_text(self):
+        fm = QFontMetrics(self.label.font())
+        elided = fm.elidedText(
+            self.text, Qt.ElideRight, self.widget.width() - self.padding
+        )
+        self.label.setText(elided)
+        if elided != self.text:
+            self.label.setToolTip(self.text)
+        else:
+            self.label.setToolTip(None)
 
 
 def compile_ui(src):

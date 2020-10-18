@@ -213,7 +213,9 @@ class AlbumUI(util.compile_ui("album.ui")):
         super().__init__(parent)
         self.album = album
         self.lArtist.setText(album.info.artist)
-        self.lAlbum.setText(album.info.title)
+        self._album_helper = util.ElisionHelper(
+            self, self.lAlbum, album.info.title, 128
+        )
         self.lYear.setText(str(album.info.year))
 
 
@@ -222,7 +224,9 @@ class TrackUI(util.compile_ui("track.ui")):
         super().__init__(ui.playlistUI)
         self.track = track
         self.ui = ui
-        self.text = f"{track.info.trackno} - {track.info.title}"
+        self._title_helper = util.ElisionHelper(
+            self, self.lTitle, f"{track.info.trackno} - {track.info.title}", 96
+        )
         self.lDuration.setText(util.ms_to_text(track.info.duration_ms))
         self.set_playing(False)
         self.update()
@@ -238,21 +242,6 @@ class TrackUI(util.compile_ui("track.ui")):
 
         icon = "stop.png" if self.track.stop_after else "empty.png"
         util.set_pixmap(self.lStopAfter, app.get().pixmaps.get_icon(icon))
-        self._set_title()
-
-    def resizeEvent(self, e):
-        self._set_title()
-        super().resizeEvent(e)
-
-    def _set_title(self):
-        font = self.lTitle.font()
-        fm = QFontMetrics(font)
-        elided = fm.elidedText(self.text, Qt.ElideRight, self.width() - 96)
-        self.lTitle.setText(elided)
-        if elided != self.text:
-            self.lTitle.setToolTip(self.track.info.title)
-        else:
-            self.lTitle.setToolTip(None)
 
 
 class UIAdapter:
