@@ -50,7 +50,7 @@ class BrowseDialog(util.compile_ui("browser.ui")):
             self.artists_map[a.artist].append(a)
 
         for _, lst in self.artists_map.items():
-            lst.sort(key=lambda a: a.year)
+            lst.sort(key=lambda a: (a.year, a.title))
 
         names = list(self.artists_map.keys())
 
