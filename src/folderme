@@ -72,7 +72,6 @@ class MainWindow(BaseMainWindow, util.EventSource, util.Listener):
 
         p = app.get().playlist
         p.init_ui(self)
-        self.osd = osd.OSD(p)
 
         self.driver = randomizer.Randomizer.load()
 
@@ -149,6 +148,7 @@ def start(args):
         app.get().collection.scan()
 
     mainUI = MainWindow(args)
+    osd.init()
 
     if not args.no_dbus:
         server = ipc.Server(mainUI)

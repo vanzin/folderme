@@ -109,6 +109,7 @@ class Playlist(util.ConfigObj, util.Listener, util.EventSource):
                 idx += 1
         track.stop_after = new_value
         self.fire_event(util.Listener.playlist_changed)
+        return new_value
 
     def next(self):
         while True:

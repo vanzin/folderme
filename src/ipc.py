@@ -6,6 +6,7 @@ import uuid
 import app
 import dbus
 import dbus.service
+import osd
 import util
 from dbus.mainloop.glib import DBusGMainLoop
 
@@ -284,14 +285,15 @@ class Server(dbus.service.Object):
         dbus_interface=REMOTE_CONTROL_IFACE, in_signature="", out_signature=""
     )
     def stop_after_track(self):
-        app.get().playlist.stop_after(app.get().playlist.current_track())
-        # TODO: show OSD that this happened
+        value = app.get().playlist.stop_after(app.get().playlist.current_track())
+        text = "On" if value else "Off"
+        osd.show_msg(f"Stop After Track: {text}")
 
     @dbus.service.method(
         dbus_interface=REMOTE_CONTROL_IFACE, in_signature="", out_signature=""
     )
     def osd(self):
-        self.ui.osd.show_osd(None)
+        osd.show_track(None)
 
 
 def send(cmd):
