@@ -112,6 +112,9 @@ class Listener:
     def track_ended(self, track):
         pass
 
+    def track_changed(self, track):
+        pass
+
     def ui_resized(self, widget):
         pass
 

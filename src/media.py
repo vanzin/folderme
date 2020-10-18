@@ -41,10 +41,11 @@ class Player(util.EventSource):
             self._player.pause()
             self.fire_event(util.Listener.track_paused, self._track)
 
-    def stop(self):
+    def stop(self, fire_event=True):
         if self.is_playing() or self.is_paused():
             self._player.stop()
-            self.fire_event(util.Listener.track_stopped, self._track)
+            if fire_event:
+                self.fire_event(util.Listener.track_stopped, self._track)
 
     def is_playing(self):
         return self._player.state() == self._player.PlayingState
@@ -70,6 +71,7 @@ class Player(util.EventSource):
     def set_track(self, track):
         self._player.setMedia(QMediaContent(QUrl("file:" + track.path)))
         self._track = track
+        self.fire_event(util.Listener.track_changed, track)
 
 
 class UIAdapter(util.Listener):
@@ -108,6 +110,10 @@ class UIAdapter(util.Listener):
 
     def track_playing(self, track):
         self.ui.tPosition.setMinimum(0)
+        self._update_position(0)
+
+    def track_changed(self, track):
+        self.duration_changed(track.duration_ms)
         self._update_position(0)
 
     def duration_changed(self, duration):

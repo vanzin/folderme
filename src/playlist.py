@@ -75,8 +75,11 @@ class Playlist(util.ConfigObj, util.Listener, util.EventSource):
         self.play(self.current_track())
 
     def play(self, track):
-        if not self._inhibity_play:
-            self.track_idx = track.index
+        self.track_idx = track.index
+        if self._inhibity_play:
+            self._player.set_track(track=track.info)
+            self.fire_event(util.Listener.playlist_changed)
+        else:
             self._player.play(track=track.info)
             self.fire_event(util.Listener.playlist_playing)
 
@@ -103,6 +106,8 @@ class Playlist(util.ConfigObj, util.Listener, util.EventSource):
                 idx += 1
         track.stop_after = new_value
         self.fire_event(util.Listener.playlist_changed)
+
+        # TODO: show OSD that this happened
 
     def next(self):
         while True:
@@ -148,16 +153,13 @@ class Playlist(util.ConfigObj, util.Listener, util.EventSource):
 
     def track_ended(self, _):
         track = self.current_track()
-        if not track.stop_after:
-            self.stop()
-            self.next()
-            return
+        if track.stop_after:
+            track.stop_after = False
+            self._player.stop(fire_event=False)
 
-        if self.track_idx == len(self.albums[0].tracks) - 1:
-            del self.albums[0]
-            self._inhibity_play = True
-            self.fire_event(util.Listener.playlist_ended)
-            self._inhibity_play = False
+        self._inhibity_play = True
+        self.next()
+        self._inhibity_play = False
 
     def init_ui(self, ui):
         track = self.current_track()
