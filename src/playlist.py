@@ -140,6 +140,7 @@ class Playlist(util.ConfigObj, util.Listener):
         self.albums = [Album(album)]
         self.track_idx = 0
         self.stop()
+        self.save()
         util.EventBus.send(util.Listener.playlist_changed)
         if play:
             self.playpause()
@@ -183,6 +184,7 @@ class Playlist(util.ConfigObj, util.Listener):
 
     def add_album(self, album):
         self.albums.append(Album(album))
+        self.save()
         util.EventBus.send(util.Listener.playlist_changed)
 
     def remove_album(self, album):
@@ -201,6 +203,7 @@ class Playlist(util.ConfigObj, util.Listener):
             if play:
                 self.playpause()
 
+        self.save()
         util.EventBus.send(util.Listener.playlist_changed)
 
 
