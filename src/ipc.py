@@ -164,6 +164,10 @@ class MPRIS(dbus.service.Object, util.Listener):
         self._set_cover(track)
         self._update_player_props()
 
+    def track_changed(self, track):
+        if not app.get().playlist.is_playing():
+            self._update_player_props()
+
     def track_position_changed(self, track, position):
         update = {
             "Position": dbus.Int64(position * 1000),
