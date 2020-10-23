@@ -121,6 +121,7 @@ class Playlist(util.ConfigObj, util.Listener):
                 return
 
             del self.albums[0]
+            self.track_idx = 0
             if not self.albums:
                 util.EventBus.send(util.Listener.playlist_ended)
                 return
