@@ -151,7 +151,6 @@ class ScanDialog(util.compile_ui("rescan.ui")):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.lScanState.setText("Scanning...")
-        self._parent = parent
 
     def scan_progress(self, path):
         self.lScanState.setText(f"Scanning {path}...")

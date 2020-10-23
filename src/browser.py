@@ -108,8 +108,6 @@ class BrowseDialog(util.compile_ui("browser.ui")):
 
     def _rescan(self):
         app.get().collection.scan(self)
-
-    def scan_done(self):
         self.artists.clear()
         self.albums.clear()
         self._populate_artists()
