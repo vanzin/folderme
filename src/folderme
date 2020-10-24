@@ -10,6 +10,7 @@ import ipc
 import osd
 import randomizer
 import util
+from PyQt5.QtCore import QTimer
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QMenu
 from PyQt5.QtWidgets import QSystemTrayIcon
@@ -50,7 +51,7 @@ class TrayIcon(QSystemTrayIcon, util.Listener):
             self.ui.hide()
         else:
             self.ui.show()
-            self.ui.raise_()
+            QTimer.singleShot(0, self._do_raise)
 
     def track_playing(self, track):
         self.setToolTip(f"Playing: {track.artist} - {track.title}")
@@ -60,6 +61,10 @@ class TrayIcon(QSystemTrayIcon, util.Listener):
 
     def track_stopped(self, track):
         self.setToolTip(f"Stopped")
+
+    def _do_raise(self):
+        self.ui.activateWindow()
+        self.ui.raise_()
 
 
 class MainWindow(BaseMainWindow, util.Listener):
