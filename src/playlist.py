@@ -166,6 +166,7 @@ class Playlist(util.ConfigObj, util.Listener):
     def _post_track_ended(self):
         self.next()
         self._inhibity_play = False
+        self.save()
 
     def init_ui(self, ui):
         track = self.current_track()
