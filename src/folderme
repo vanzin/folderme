@@ -144,6 +144,9 @@ class MainWindow(BaseMainWindow, util.Listener):
 
 
 def start(args):
+    if args.no_save:
+        util.ConfigObj.SAVE_ENABLED = False
+
     app.init(args)
 
     if not app.get().collection.albums:
@@ -187,6 +190,12 @@ def main(argv):
         action="store_true",
         default=False,
         help="do not scrobble to last.fm",
+    )
+    parser.add_argument(
+        "--no-save",
+        action="store_true",
+        default=False,
+        help="do not save application state",
     )
     args = parser.parse_args(argv[1:])
 

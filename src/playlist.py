@@ -121,10 +121,13 @@ class Playlist(util.ConfigObj, util.Listener):
                 return
 
             del self.albums[0]
-            self.track_idx = 0
             if not self.albums:
+                self.track_idx = 0
                 util.EventBus.send(util.Listener.playlist_ended)
                 return
+
+            util.EventBus.send(util.Listener.playlist_changed)
+            self.track_idx = -1
 
     def prev(self):
         self.stop()

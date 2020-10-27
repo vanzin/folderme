@@ -21,6 +21,8 @@ class ConfigObj:
     Base class for config objects that disables serialization of "private" fields.
     """
 
+    SAVE_ENABLED = True
+
     @classmethod
     def load(cls):
         path = os.path.join(config_dir(), cls.config_file_name())
@@ -41,12 +43,13 @@ class ConfigObj:
             setattr(self, k, v)
 
     def save(self):
-        jsonpickle.set_preferred_backend("json")
-        jsonpickle.set_encoder_options("json", indent=2)
-        path = os.path.join(config_dir(create=True), self.config_file_name())
-        data = jsonpickle.encode(self)
-        with open(path, "wt", encoding="utf-8") as out:
-            out.write(data)
+        if self.SAVE_ENABLED:
+            jsonpickle.set_preferred_backend("json")
+            jsonpickle.set_encoder_options("json", indent=2)
+            path = os.path.join(config_dir(create=True), self.config_file_name())
+            data = jsonpickle.encode(self)
+            with open(path, "wt", encoding="utf-8") as out:
+                out.write(data)
 
 
 class EventBus:
