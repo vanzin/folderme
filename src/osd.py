@@ -2,6 +2,7 @@
 import app
 import util
 from PyQt5.QtCore import QPoint
+from PyQt5.QtCore import QSize
 from PyQt5.QtCore import QTimer
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QGuiApplication
@@ -52,9 +53,16 @@ class BaseOSD:
             BaseOSD._WINDOW.close()
 
     def _show_osd(self):
-        y = 64
-        w = self.width()
+        psize = self.sizeHint()
+
         sw = QGuiApplication.primaryScreen().availableSize().width()
+        w = psize.width()
+        if psize.width() > sw:
+            w = sw / 2
+
+        self.resize(QSize(w, psize.height()))
+
+        y = 64
         x = sw // 2 - w // 2
         self.move(QPoint(x, y))
 
