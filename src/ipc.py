@@ -7,12 +7,9 @@ import app
 import dbus
 import dbus.service
 import osd
+import remote
 import util
 from dbus.mainloop.glib import DBusGMainLoop
-
-DBUS_SERVICE = "org.vanzin.FolderME"
-DBUS_OBJECT = "/org/vanzin/FolderME"
-REMOTE_CONTROL_IFACE = f"{DBUS_SERVICE}.Remote"
 
 MP_IFACE = "org.mpris.MediaPlayer2"
 PLAYER_IFACE = "org.mpris.MediaPlayer2.Player"
@@ -192,7 +189,7 @@ class MPRIS(dbus.service.Object, util.Listener):
         if track:
             meta.update(
                 {
-                    "mpris:trackid": f"{DBUS_OBJECT}/{track.trackno}",
+                    "mpris:trackid": f"{remote.DBUS_OBJECT}/{track.trackno}",
                     "mpris:length": dbus.Int64(track.duration_ms),
                     "xesam:album": track.album,
                     "xesam:artist": track.artist,
@@ -241,7 +238,7 @@ class Server(dbus.service.Object):
 
         claimed = False
         try:
-            bus.get_name_owner(DBUS_SERVICE)
+            bus.get_name_owner(remote.DBUS_SERVICE)
             claimed = True
         except:
             pass
@@ -249,44 +246,44 @@ class Server(dbus.service.Object):
         if claimed:
             raise Exception("DBUS service already claimed.")
 
-        bus_name = dbus.service.BusName(DBUS_SERVICE, bus=bus)
-        dbus.service.Object.__init__(self, bus, DBUS_OBJECT, bus_name=bus_name)
+        bus_name = dbus.service.BusName(remote.DBUS_SERVICE, bus=bus)
+        dbus.service.Object.__init__(self, bus, remote.DBUS_OBJECT, bus_name=bus_name)
         self.ui = ui
         self.remote = Remote(self.ui)
         self.mpris = MPRIS(bus, self.remote)
 
     @dbus.service.method(
-        dbus_interface=REMOTE_CONTROL_IFACE, in_signature="", out_signature=""
+        dbus_interface=remote.REMOTE_CONTROL_IFACE, in_signature="", out_signature=""
     )
     def playpause(self):
         self.remote.playpause()
 
     @dbus.service.method(
-        dbus_interface=REMOTE_CONTROL_IFACE, in_signature="", out_signature=""
+        dbus_interface=remote.REMOTE_CONTROL_IFACE, in_signature="", out_signature=""
     )
     def stop(self):
         self.remote.stop()
 
     @dbus.service.method(
-        dbus_interface=REMOTE_CONTROL_IFACE, in_signature="", out_signature=""
+        dbus_interface=remote.REMOTE_CONTROL_IFACE, in_signature="", out_signature=""
     )
     def quit(self):
         self.remote.quit()
 
     @dbus.service.method(
-        dbus_interface=REMOTE_CONTROL_IFACE, in_signature="", out_signature=""
+        dbus_interface=remote.REMOTE_CONTROL_IFACE, in_signature="", out_signature=""
     )
     def next(self):
         self.remote.next()
 
     @dbus.service.method(
-        dbus_interface=REMOTE_CONTROL_IFACE, in_signature="", out_signature=""
+        dbus_interface=remote.REMOTE_CONTROL_IFACE, in_signature="", out_signature=""
     )
     def prev(self):
         self.remote.prev()
 
     @dbus.service.method(
-        dbus_interface=REMOTE_CONTROL_IFACE, in_signature="", out_signature=""
+        dbus_interface=remote.REMOTE_CONTROL_IFACE, in_signature="", out_signature=""
     )
     def stop_after_track(self):
         value = app.get().playlist.stop_after(app.get().playlist.current_track())
@@ -294,14 +291,7 @@ class Server(dbus.service.Object):
         osd.show_msg(f"Stop After Track: {text}")
 
     @dbus.service.method(
-        dbus_interface=REMOTE_CONTROL_IFACE, in_signature="", out_signature=""
+        dbus_interface=remote.REMOTE_CONTROL_IFACE, in_signature="", out_signature=""
     )
     def osd(self):
         osd.show_track(None)
-
-
-def send(cmd):
-    bus = dbus.SessionBus()
-    server = bus.get_object(DBUS_SERVICE, DBUS_OBJECT)
-    method = getattr(server, cmd)
-    method(dbus_interface=REMOTE_CONTROL_IFACE)
