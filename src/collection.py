@@ -45,6 +45,8 @@ class Track(util.ConfigObj):
         self.duration_ms = int(f.info.length * 1000)
 
     def cover_art(self):
+        if not self.path:
+            return None
         tags = ID3(self.path)
         art = tags.get("APIC:")
         return art.data if art else None

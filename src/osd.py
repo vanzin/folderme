@@ -142,3 +142,33 @@ class Track(util.compile_ui("osd.ui"), BaseOSD):
 
         self.status.setText(status)
         self._show_osd()
+
+
+if __name__ == "__main__":
+    import collection
+    import sys
+    import time
+
+    class Args(object):
+        pass
+
+    args = Args()
+    args.no_save = True
+    args.no_lastfm = True
+    app.init(args)
+    init()
+
+    def msg_test():
+        show_msg("Hello this is a message!")
+
+    def track_test():
+        t = collection.Track()
+        t.artist = "Artist"
+        t.album = "Album"
+        t.title = "Title"
+        show_track(t)
+
+    QTimer.singleShot(1000, msg_test)
+    QTimer.singleShot(3000, track_test)
+    QTimer.singleShot(5000, lambda: app.get().exit())
+    sys.exit(app.get().exec_())

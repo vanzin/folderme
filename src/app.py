@@ -195,7 +195,7 @@ class FolderME(QApplication):
         self.quit()
 
 
-def start(args):
+def init(args):
     global _INSTANCE
 
     if args.no_save:
@@ -203,6 +203,10 @@ def start(args):
 
     _INSTANCE = FolderME()
     _INSTANCE.init(args)
+
+
+def start(args):
+    init(args)
 
     if not get().collection.albums:
         cfg = config.ConfigDialog()
