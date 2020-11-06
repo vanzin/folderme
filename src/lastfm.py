@@ -45,6 +45,7 @@ class ScrobbleCache(util.ConfigObj):
     def pop(self):
         if self.scrobbles:
             del self.scrobbles[0]
+            self.save()
 
     def add(self, s):
         self.scrobbles.append(s)
