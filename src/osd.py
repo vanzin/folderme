@@ -66,9 +66,14 @@ class BaseOSD:
         x = sw // 2 - w // 2
         self.move(QPoint(x, y))
 
-        BaseOSD._TIMER = QTimer.singleShot(2000, self._close)
+        show_timer = QTimer()
+        show_timer.setSingleShot(True)
+        show_timer.timeout.connect(self._close)
+        show_timer.start(2000)
+
+        BaseOSD._TIMER = show_timer
         BaseOSD._WINDOW = self
-        self.show()
+        QTimer.singleShot(0, self.show)
 
     def _close(self):
         BaseOSD._TIMER = None
