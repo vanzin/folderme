@@ -67,7 +67,7 @@ class Player:
         return self._track
 
     def set_track(self, track):
-        self._player.setMedia(QMediaContent(QUrl("file:" + track.path)))
+        self._player.setMedia(QMediaContent(QUrl.fromLocalFile(track.path)))
         self._track = track
         util.EventBus.send(util.Listener.track_changed, track)
 
