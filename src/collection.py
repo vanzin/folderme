@@ -38,7 +38,10 @@ class Track(util.ConfigObj):
         self.artist = tags["artist"][0]
         self.album = tags["album"][0]
         self.title = tags["title"][0]
-        self.year = int(tags["date"][0])
+        try:
+            self.year = int(tags["date"][0])
+        except:
+            print(f"track {self.path} is missing date information")
 
         # Some tracks show up as "x/y" and some as just "x". Don't know why.
         parts = tags["tracknumber"][0].split("/")
