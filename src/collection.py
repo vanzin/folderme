@@ -6,9 +6,11 @@ import util
 from PyQt5.QtCore import QThread
 from PyQt5.QtCore import pyqtSignal
 from mutagen.easyid3 import EasyID3
+from mutagen.easymp4 import EasyMP4Tags
 from mutagen.id3 import ID3
+from mutagen.mp4 import MP4Tags
 
-METADATA_VERSION = 2
+METADATA_VERSION = 3
 
 
 class Track(util.ConfigObj):
@@ -26,7 +28,7 @@ class Track(util.ConfigObj):
         if not mf:
             raise Exception(f"Unrecognized file {path}")
 
-        if type(mf.tags) != EasyID3:
+        if type(mf.tags) not in [EasyID3, EasyMP4Tags]:
             raise Exception(f"Don't know how to handle {type(mf.tags)}")
 
         self.path = path
@@ -36,7 +38,7 @@ class Track(util.ConfigObj):
         self.artist = tags["artist"][0]
         self.album = tags["album"][0]
         self.title = tags["title"][0]
-        self.year = tags["date"][0]
+        self.year = int(tags["date"][0])
 
         # Some tracks show up as "x/y" and some as just "x". Don't know why.
         parts = tags["tracknumber"][0].split("/")
@@ -47,9 +49,17 @@ class Track(util.ConfigObj):
     def cover_art(self):
         if not self.path:
             return None
-        tags = ID3(self.path)
-        art = tags.get("APIC:")
-        return art.data if art else None
+        tags = mutagen.File(self.path).tags
+        if type(tags) == ID3:
+            art = tags.get("APIC:").data
+        elif type(tags) == MP4Tags:
+            art = tags.get("aART")
+            if not art:
+                art = tags.get("covr")
+            if isinstance(art, list):
+                art = art[0]
+
+        return art
 
     def info(self):
         f = mutagen.File(self.path, easy=True)
