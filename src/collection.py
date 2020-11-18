@@ -85,7 +85,11 @@ class Album(util.ConfigObj):
 
         for f in files:
             t = Track()
-            t.init(os.path.join(path, f))
+            try:
+                t.init(os.path.join(path, f))
+            except Exception as e:
+                print(f"error processing {path}/{f}: {e}")
+
             if title and title != t.album:
                 raise Exception(f"Inconsistent album info in {path}.")
 
