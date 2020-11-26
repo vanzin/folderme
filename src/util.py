@@ -235,6 +235,12 @@ def set_pixmap(label, pixmap):
     label.setPixmap(scaled)
 
 
+def print_error():
+    import traceback
+
+    traceback.print_exc()
+
+
 @contextmanager
 def profile(name):
     t1 = int(time.time() * 1000)

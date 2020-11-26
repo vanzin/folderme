@@ -10,7 +10,7 @@ from mutagen.easymp4 import EasyMP4Tags
 from mutagen.id3 import ID3
 from mutagen.mp4 import MP4Tags
 
-METADATA_VERSION = 3
+METADATA_VERSION = 4
 
 
 class Track(util.ConfigObj):
@@ -22,6 +22,7 @@ class Track(util.ConfigObj):
         self.duration_ms = 0
         self.trackno = -1
         self.year = -1
+        self._discno = None
 
     def init(self, path):
         mf = mutagen.File(path, easy=True)
@@ -46,6 +47,12 @@ class Track(util.ConfigObj):
         # Some tracks show up as "x/y" and some as just "x". Don't know why.
         parts = tags["tracknumber"][0].split("/")
         self.trackno = int(parts[0])
+
+        self.discno = 1
+        try:
+            self._discno = tags["discnumber"][0]
+        except:
+            pass
 
         self.duration_ms = int(f.info.length * 1000)
 
@@ -92,6 +99,7 @@ class Album(util.ConfigObj):
         mtime = 0
         tracks = []
         year = -1
+        discnos = set()
 
         if not files:
             files = [
@@ -104,12 +112,15 @@ class Album(util.ConfigObj):
                 t.init(os.path.join(path, f))
             except Exception as e:
                 print(f"error processing {path}/{f}: {e}")
+                continue
 
             if title and title != t.album:
                 raise Exception(f"Inconsistent album info in {path}.")
 
             title = t.album
             year = t.year
+            if t._discno:
+                discnos.add(t._discno)
 
             if artist is None:
                 artist = t.artist
@@ -123,6 +134,20 @@ class Album(util.ConfigObj):
             raise Exception(f"Unable to figure out path {path}")
 
         tracks.sort(key=lambda x: x.path)
+
+        if len(discnos) == 1:
+            in_set = False
+            discno = list(discnos)[0]
+            try:
+                discno = int(discno)
+                in_set = discno > 1
+            except:
+                parts = discno.split("/")
+                discno = int(parts[0])
+                in_set = int(parts[1]) > 1
+
+            if in_set and not title.endswith(f"(Disc {discno})"):
+                title = f"{title} (Disc {discno})"
 
         self.title = title
         self.artist = artist
@@ -158,9 +183,11 @@ class Scanner(QThread):
 
                     try:
                         a = Album()
-                        a.init(root, files=files)
-                        albums.append(a)
-                        tcnt += len(a.tracks)
+                        try:
+                            a.init(root, files=files)
+                            albums.append(a)
+                        except Exception:
+                            util.print_error()
                     except:
                         pass
 
