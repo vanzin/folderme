@@ -7,4 +7,4 @@ Essential: no
 Installed-Size: 1024
 Maintainer: vanzin@apache.org
 Description: Folder-based music player
-Depends: python3-jsonpickle, python3-mutagen, python3-pyqt5.qtmultimedia, python3-dbus, python3-requests
+Depends: python3-jsonpickle, python3-mutagen, python3-pyqt5.qtmultimedia, python3-dbus, python3-requests, python3-setproctitle

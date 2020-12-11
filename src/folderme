@@ -3,8 +3,12 @@
 import argparse
 import sys
 
+import setproctitle
+
 
 def main(argv):
+    setproctitle.setproctitle("folderme")
+
     parser = argparse.ArgumentParser(description="FolderME music player")
     parser.add_argument(
         "--remote", metavar="CMD", help="send CMD to FolderME dbus service"
