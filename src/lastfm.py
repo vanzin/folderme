@@ -10,6 +10,7 @@ from xml.dom import minidom
 
 import requests
 import util
+from PyQt5.QtCore import QTimer
 
 API_KEY = "d6011cfd9d9a3bdedb3c3980e9cdab0e"
 SECRET = "353fa1593215d359123dc209c4101da8"
@@ -65,6 +66,9 @@ class Scrobbler(util.Listener):
 
         self.thread = threading.Thread(target=self._run, daemon=True)
         self.thread.start()
+
+        self.now_playing = None
+        self.now_playing_timer = None
 
     def _run(self):
         while self.running:
@@ -127,18 +131,46 @@ class Scrobbler(util.Listener):
 
     def track_playing(self, track):
         if not self._playback_start:
+            self._stop_playing()
             self._playback_start = int(time.time())
             self._enqueue(track, False)
 
+        self.now_playing = track
+        timer = QTimer()
+        timer.setInterval(60 * 1000)
+        timer.timeout.connect(self._now_playing)
+        timer.start()
+        self.now_playing_timer = timer
+
     def track_ended(self, track):
+        self._stop_playing()
         self._enqueue(track, True)
-        self._playback_start = None
+
+    def track_stopped(self, track):
+        self._stop_playing()
+
+    def track_paused(self, track):
+        self._stop_timer()
 
     def shutdown(self):
         self.running = False
         self.event.set()
         self.thread.join()
         self.cache.save()
+
+    def _now_playing(self):
+        if self._now_playing:
+            self._enqueue(self.now_playing, False)
+
+    def _stop_playing(self):
+        self._stop_timer()
+        self._playback_start = None
+
+    def _stop_timer(self):
+        if self.now_playing_timer:
+            self.now_playing_timer.stop()
+        self.now_playing = None
+        self.now_playing_timer = None
 
 
 def get_scrobbler(enabled):
