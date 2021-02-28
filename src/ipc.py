@@ -184,6 +184,7 @@ class MPRIS(dbus.service.Object, util.Listener):
         elif pl.is_paused():
             state = "Paused"
         track = pl.player().track()
+        self._set_cover(track)
 
         meta = dbus.Dictionary({}, signature="sv")
         if track:
