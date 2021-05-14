@@ -42,6 +42,13 @@ class Remote:
     def pause(self):
         app.get().playlist.pause()
 
+    def play(self):
+        pl = app.get().playlist
+        if pl.is_paused():
+            pl.playpause()
+        else:
+            pl.play(pl.current_track())
+
 
 class MPRIS(dbus.service.Object, util.Listener):
     OBJECT = "/org/mpris/MediaPlayer2"
@@ -105,11 +112,15 @@ class MPRIS(dbus.service.Object, util.Listener):
 
     @dbus.service.method(dbus_interface=PLAYER_IFACE, in_signature="", out_signature="")
     def Previous(self):
-        self.remove.prev()
+        self.remote.prev()
 
     @dbus.service.method(dbus_interface=PLAYER_IFACE, in_signature="", out_signature="")
     def Pause(self):
         self.remote.pause()
+
+    @dbus.service.method(dbus_interface=PLAYER_IFACE, in_signature="", out_signature="")
+    def Play(self):
+        self.remote.play()
 
     @dbus.service.method(dbus_interface=PLAYER_IFACE, in_signature="", out_signature="")
     def PlayPause(self):
@@ -129,7 +140,6 @@ class MPRIS(dbus.service.Object, util.Listener):
         dbus_interface=PLAYER_IFACE, in_signature="ox", out_signature=""
     )
     def SetPosition(self, track, pos):
-        print("setpos()")
         pass
 
     @dbus.service.method(
