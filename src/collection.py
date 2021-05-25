@@ -10,7 +10,7 @@ from mutagen.easymp4 import EasyMP4Tags
 from mutagen.id3 import ID3
 from mutagen.mp4 import MP4Tags
 
-METADATA_VERSION = 4
+METADATA_VERSION = 5
 
 
 class Track(util.ConfigObj):
@@ -133,7 +133,7 @@ class Album(util.ConfigObj):
         if not artist:
             raise Exception(f"Unable to figure out path {path}")
 
-        tracks.sort(key=lambda x: x.path)
+        tracks.sort(key=lambda x: (x._discno or -1, x.trackno, x.path))
 
         if len(discnos) == 1:
             in_set = False
