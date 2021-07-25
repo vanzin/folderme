@@ -20,6 +20,7 @@ from PyQt5.QtWidgets import QSystemTrayIcon
 
 _INSTANCE = None
 BaseMainWindow = util.compile_ui("main.ui")
+BIAS_CFG_KEY = "playlist/bias"
 
 
 class TrayIcon(QSystemTrayIcon, util.Listener):
@@ -162,7 +163,7 @@ class FolderME(QApplication):
 
         self._bias = 1
 
-        bias = util.SETTINGS.value("playlist/bias")
+        bias = util.SETTINGS.value(BIAS_CFG_KEY)
         if bias:
             self._bias = int(bias)
 
@@ -184,6 +185,7 @@ class FolderME(QApplication):
 
     def set_bias(self, bias):
         self._bias = bias
+        util.SETTINGS.setValue(BIAS_CFG_KEY, str(bias))
 
     def save(self):
         self.playlist.save()
