@@ -24,6 +24,7 @@ class Randomizer(util.ConfigObj, util.Listener):
                 del self.history[0]
 
         self.pick_next(play=True)
+        self.save()
 
     def pick_next(self, play=False):
         if not app.get().collection.albums:

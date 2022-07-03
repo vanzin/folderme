@@ -131,6 +131,7 @@ class MainWindow(BaseMainWindow, util.Listener):
         util.EventBus.send(util.Listener.ui_resized, self)
 
     def closeEvent(self, e):
+        self.driver.save()
         util.save_ui(self, "main")
         super().closeEvent(e)
 
