@@ -14,17 +14,18 @@ class Randomizer(util.ConfigObj, util.Listener):
         util.EventBus.add(self)
 
     def track_playing(self, track):
-        self._now_playing = track.artist
+        new_artist = track.artist
+        if self._now_playing and new_artist != self._now_playing:
+            self._add_to_history(self._now_playing)
+
+        self._now_playing = new_artist
 
     def playlist_ended(self):
         if self._now_playing:
-            self.history.append(self._now_playing)
+            self._add_to_history(self._now_playing)
             self._now_playing = None
-            if len(self.history) > app.get().bias:
-                del self.history[0]
 
         self.pick_next(play=True)
-        self.save()
 
     def pick_next(self, play=False):
         if not app.get().collection.albums:
@@ -37,6 +38,11 @@ class Randomizer(util.ConfigObj, util.Listener):
             if next.artist in ignore:
                 continue
 
-            print(f"Playing {next.artist}/{next.title}")
             app.get().playlist.replace(next, play=play)
             return
+
+    def _add_to_history(self, artist):
+        self.history.append(artist)
+        if len(self.history) > app.get().bias:
+            del self.history[0]
+        self.save()
