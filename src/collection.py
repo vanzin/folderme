@@ -22,6 +22,7 @@ class Track(util.ConfigObj):
         self.duration_ms = 0
         self.trackno = -1
         self.year = -1
+        self.skip = False
         self._discno = None
 
     def init(self, path):

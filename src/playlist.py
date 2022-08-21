@@ -14,6 +14,9 @@ class Track:
         self.stop_after = False
         self.index = index
 
+    def should_skip(self):
+        return self.skip or self.info.skip
+
 
 class Album(util.ConfigObj):
     K_SKIP_TRACKS = "skip"
@@ -115,7 +118,7 @@ class Playlist(util.ConfigObj, util.Listener):
             album = self.albums[0]
             if self.track_idx < len(album.tracks) - 1:
                 self.track_idx += 1
-                if album.tracks[self.track_idx].skip:
+                if album.tracks[self.track_idx].should_skip():
                     continue
                 self.play(self.current_track())
                 return
@@ -229,6 +232,7 @@ class TrackUI(util.compile_ui("track.ui")):
         self._title_helper = util.ElisionHelper(
             self, self.lTitle, f"{track.info.trackno} - {track.info.title}", 96
         )
+        self.default_color = self.lTitle.palette().color(self.lTitle.foregroundRole())
         self.lDuration.setText(util.ms_to_text(track.info.duration_ms))
         self.set_playing(False)
         self.update()
@@ -239,8 +243,16 @@ class TrackUI(util.compile_ui("track.ui")):
 
     def update(self):
         font = self.lTitle.font()
-        font.setItalic(self.track.skip)
+        font.setItalic(self.track.should_skip())
         self.lTitle.setFont(font)
+
+        color = self.default_color
+        if self.track.info.skip:
+            color = Qt.gray
+
+        palette = self.lTitle.palette()
+        palette.setColor(self.lTitle.foregroundRole(), color)
+        self.lTitle.setPalette(palette)
 
         icon = "stop.png" if self.track.stop_after else "empty.png"
         util.set_pixmap(self.lStopAfter, app.get().pixmaps.get_icon(icon))
@@ -330,6 +342,8 @@ class UIAdapter:
             self._skip_selection(False)
         elif event.key() == Qt.Key_S:
             self._set_stop_after()
+        elif event.key() == Qt.Key_K:
+            self._toggle_kill_track()
         else:
             self._playlist_released_key(event)
 
@@ -342,6 +356,17 @@ class UIAdapter:
             else:
                 widget.track.skip = skip
                 widget.update()
+
+    def _toggle_kill_track(self):
+        for item in self.ui.playlistUI.selectedItems():
+            widget = self.ui.playlistUI.itemWidget(item)
+            if not isinstance(widget, TrackUI):
+                continue
+
+            widget.track.info.skip = not widget.track.info.skip
+            widget.update()
+
+        app.get().collection.save()
 
     def _set_stop_after(self):
         items = self.ui.playlistUI.selectedItems()
