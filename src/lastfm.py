@@ -39,6 +39,9 @@ class ScrobbleCache(util.ConfigObj):
     def __init__(self):
         self.scrobbles = []
 
+    def is_empty(self):
+        return len(self.scrobbles) == 0
+
     def next(self):
         return self.scrobbles[0] if self.scrobbles else None
 
@@ -54,8 +57,7 @@ class ScrobbleCache(util.ConfigObj):
 
 class Scrobbler(util.Listener):
     def __init__(self, session_key, enabled):
-        self.lock = threading.Lock()
-        self.event = threading.Event()
+        self.cond = threading.Condition()
         self.cache = ScrobbleCache.load()
         self.session_key = session_key
         self.enabled = enabled
@@ -68,26 +70,19 @@ class Scrobbler(util.Listener):
 
     def _run(self):
         while self.running:
-            self.event.clear()
-            self._drain()
-            self.event.wait()
+            with self.cond:
+                while self.running and self.cache.is_empty():
+                    self.cond.wait()
 
-    def _drain(self):
-        while True:
-            with self.lock:
                 next = self.cache.next()
 
-            if not next:
-                return
-
-            try:
-                self._scrobble(next)
-            except Exception as e:
-                print(f"error scrobbling: {e}", file=sys.stderr)
-                return
-
-            with self.lock:
-                self.cache.pop()
+            if next is not None:
+                try:
+                    self._scrobble(next)
+                    with self.cond:
+                        self.cache.pop()
+                except Exception as e:
+                    print(f"error scrobbling: {e}", file=sys.stderr)
 
     def _scrobble(self, s):
         album = s.album
@@ -121,9 +116,9 @@ class Scrobbler(util.Listener):
         s.title = track.title
         s.is_ended = is_ended
         s.start_time = self._playback_start
-        with self.lock:
+        with self.cond:
             self.cache.add(s)
-        self.event.set()
+            self.cond.notify_all()
 
     def track_playing(self, track):
         if not self._playback_start:
@@ -135,8 +130,9 @@ class Scrobbler(util.Listener):
         self._playback_start = None
 
     def shutdown(self):
-        self.running = False
-        self.event.set()
+        with self.cond:
+            self.running = False
+            self.cond.notify_all()
         self.thread.join()
         self.cache.save()
 
@@ -168,7 +164,7 @@ def _get(**params):
 
 
 def _post(**params):
-    res = requests.post(API_URL, data=sign(params))
+    res = requests.post(API_URL, data=sign(params), timeout=5)
     _check_response(res)
     return res
 
