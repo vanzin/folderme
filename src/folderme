@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: BSD-2-Clause
 import argparse
+import os
 import sys
 
 import setproctitle
@@ -34,7 +35,19 @@ def main(argv):
         default=False,
         help="do not save application state",
     )
+    parser.add_argument(
+        "--debug-config",
+        default=None,
+        help="path to a directory where to load a config for debug; enables all debug-related opts",
+    )
     args = parser.parse_args(argv[1:])
+
+    if args.debug_config:
+        args.no_dbus = True
+        args.no_lastfm = True
+        args.no_save = True
+        args.show = True
+        os.environ["FOLDERME_CONFIG"] = args.debug_config
 
     if args.remote:
         import remote

@@ -58,7 +58,7 @@ class Track(util.ConfigObj):
         self.duration_ms = int(f.info.length * 1000)
 
     def cover_art(self):
-        if not self.path:
+        if not self.path or not os.path.isfile(self.path):
             return None
         tags = mutagen.File(self.path).tags
         if type(tags) == ID3:

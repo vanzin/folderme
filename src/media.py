@@ -1,4 +1,6 @@
 # SPDX-License-Identifier: BSD-2-Clause
+import os
+
 import app
 import util
 from PyQt5.QtCore import QUrl
@@ -67,9 +69,10 @@ class Player:
         return self._track
 
     def set_track(self, track):
-        self._player.setMedia(QMediaContent(QUrl.fromLocalFile(track.path)))
-        self._track = track
-        util.EventBus.send(util.Listener.track_changed, track)
+        if os.path.isfile(track.path):
+            self._player.setMedia(QMediaContent(QUrl.fromLocalFile(track.path)))
+            self._track = track
+            util.EventBus.send(util.Listener.track_changed, track)
 
 
 class UIAdapter(util.Listener):
