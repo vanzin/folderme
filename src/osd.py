@@ -40,6 +40,7 @@ class BaseOSD:
             Qt.FramelessWindowHint
             | Qt.WindowStaysOnTopHint
             | Qt.WindowDoesNotAcceptFocus
+            | Qt.WindowTransparentForInput
             | Qt.Tool
         )
         self.setWindowOpacity(0.80)
