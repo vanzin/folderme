@@ -43,6 +43,7 @@ class BaseOSD:
             | Qt.WindowTransparentForInput
             | Qt.Tool
         )
+        self.setAttribute(Qt.WA_ShowWithoutActivating)
         self.setWindowOpacity(0.80)
 
     def _pre_show(self):
