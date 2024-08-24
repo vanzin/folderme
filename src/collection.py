@@ -149,6 +149,8 @@ class Album(util.ConfigObj):
 
             if in_set and not title.endswith(f"(Disc {discno})"):
                 title = f"{title} (Disc {discno})"
+                for track in tracks:
+                    track.album = title
 
         self.title = title
         self.artist = artist
