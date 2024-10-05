@@ -62,9 +62,11 @@ class Track(util.ConfigObj):
             return None
         tags = mutagen.File(self.path).tags
         if type(tags) == ID3:
-            art = tags.get("APIC:")
-            if art:
-                art = art.data
+            for candidate in ["APIC:", "APIC:cover"]:
+                art = tags.get(candidate)
+                if art:
+                    art = art.data
+                    break
         elif type(tags) == MP4Tags:
             art = tags.get("aART")
             if not art:
