@@ -5,13 +5,13 @@ import traceback
 from contextlib import contextmanager
 
 import jsonpickle
-from PyQt5 import uic
-from PyQt5.QtCore import QSettings
-from PyQt5.QtCore import QTimer
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QFontMetrics
-from PyQt5.QtGui import QPixmap
-from PyQt5.QtGui import QPixmapCache
+from PySide6.QtCore import QSettings
+from PySide6.QtCore import QTimer
+from PySide6.QtCore import Qt
+from PySide6.QtGui import QFontMetrics
+from PySide6.QtGui import QPixmap
+from PySide6.QtGui import QPixmapCache
+from PySide6.QtUiTools import loadUiType
 
 SETTINGS = QSettings("vanzin.org", "folderme")
 
@@ -177,7 +177,7 @@ class ElisionHelper:
 
 def compile_ui(src):
     path = os.path.join(os.path.dirname(__file__), "ui", src)
-    form, qtclass = uic.loadUiType(path)
+    form, qtclass = loadUiType(path)
 
     class _WidgetBase(form, qtclass):
         def __init__(self, parent=None):

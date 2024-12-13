@@ -2,9 +2,9 @@
 import app
 import media
 import util
-from PyQt5.QtCore import QTimer
-from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QListWidgetItem
+from PySide6.QtCore import QTimer
+from PySide6.QtCore import Qt
+from PySide6.QtWidgets import QListWidgetItem
 
 
 class Track:

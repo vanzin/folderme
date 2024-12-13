@@ -3,8 +3,8 @@ import os
 
 import mutagen
 import util
-from PyQt5.QtCore import QThread
-from PyQt5.QtCore import pyqtSignal
+from PySide6.QtCore import QThread
+from PySide6.QtCore import Signal
 from mutagen.easyid3 import EasyID3
 from mutagen.easymp4 import EasyMP4Tags
 from mutagen.id3 import ID3
@@ -166,8 +166,8 @@ class Album(util.ConfigObj):
 
 
 class Scanner(QThread):
-    progress = pyqtSignal(str)
-    done = pyqtSignal()
+    progress = Signal(str)
+    done = Signal()
 
     def __init__(self, collection):
         QThread.__init__(self)

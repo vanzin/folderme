@@ -3,9 +3,9 @@ import collections
 
 import app
 import util
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QPixmap
-from PyQt5.QtWidgets import QListWidgetItem
+from PySide6.QtCore import Qt
+from PySide6.QtGui import QPixmap
+from PySide6.QtWidgets import QListWidgetItem
 
 
 class AlbumEntry(util.compile_ui("browser_album.ui")):

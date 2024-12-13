@@ -1,40 +1,41 @@
 # SPDX-License-Identifier: BSD-2-Clause
 import app
 import util
-from PyQt5.QtCore import QPoint
-from PyQt5.QtCore import QSize
-from PyQt5.QtCore import QTimer
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QGuiApplication
-from PyQt5.QtGui import QPixmap
+from PySide6.QtCore import QPoint
+from PySide6.QtCore import QSize
+from PySide6.QtCore import QTimer
+from PySide6.QtCore import Qt
+from PySide6.QtGui import QGuiApplication
+from PySide6.QtGui import QPixmap
 
 
 def init():
-    Message.instance()
-    Track.instance()
+    OSD.instance(Message)
+    OSD.instance(Track)
 
 
 def show_msg(msg):
-    Message.instance().show_osd(msg)
+    OSD.instance(Message).show_osd(msg)
 
 
 def show_track(track):
-    Track.instance().show_osd(track)
+    OSC.instance(Track).show_osd(track)
 
 
-class BaseOSD:
-    _INSTANCE = None
+class OSD:
+    _INSTANCES = {}
 
     _TIMER = None
     _WINDOW = None
 
     @classmethod
-    def instance(cls):
-        if not cls._INSTANCE:
-            cls._INSTANCE = cls()
-        return cls._INSTANCE
+    def instance(cls, impl):
+        if impl not in cls._INSTANCES:
+            cls._INSTANCES[impl] = impl()
+        return cls._INSTANCES[impl]
 
-    def __init__(self):
+    @staticmethod
+    def init_osc(self):
         self.setFocusPolicy(Qt.NoFocus)
         self.setWindowFlags(
             Qt.FramelessWindowHint
@@ -44,16 +45,20 @@ class BaseOSD:
             | Qt.Tool
         )
         self.setAttribute(Qt.WA_ShowWithoutActivating)
+        self.setAttribute(Qt.WA_TranslucentBackground)
+        self.setAttribute(Qt.WA_X11DoNotAcceptFocus)
         self.setWindowOpacity(0.80)
 
+    @staticmethod
     def _pre_show(self):
-        if BaseOSD._TIMER:
-            BaseOSD._TIMER.stop()
-            BaseOSD._TIMER = None
+        if OSD._TIMER:
+            OSD._TIMER.stop()
+            OSD._TIMER = None
 
-        if BaseOSD._WINDOW:
-            BaseOSD._WINDOW.close()
+        if OSD._WINDOW:
+            OSD._WINDOW.close()
 
+    @staticmethod
     def _show_osd(self):
         psize = self.sizeHint()
 
@@ -73,31 +78,30 @@ class BaseOSD:
         show_timer.timeout.connect(self._close)
         show_timer.start(2000)
 
-        BaseOSD._TIMER = show_timer
-        BaseOSD._WINDOW = self
+        OSD._TIMER = show_timer
+        OSD._WINDOW = self
         QTimer.singleShot(0, self.show)
 
+    @staticmethod
     def _close(self):
-        BaseOSD._TIMER = None
-        BaseOSD._WINDOW = None
+        OSD._TIMER = None
+        OSD._WINDOW = None
         self.close()
 
 
-class Message(util.compile_ui("osd_msg.ui"), BaseOSD):
+class Message(util.compile_ui("osd_msg.ui")):
     def __init__(self):
         super().__init__()
-        BaseOSD.__init__(self)
 
     def show_osd(self, msg):
-        self._pre_show()
+        OSD._pre_show(self)
         self.lMessage.setText(msg)
-        self._show_osd()
+        OSD._show_osd(self)
 
 
-class Track(util.compile_ui("osd.ui"), BaseOSD):
+class Track(util.compile_ui("osd.ui")):
     def __init__(self):
         super().__init__()
-        BaseOSD.__init__(self)
         util.EventBus.add(self)
 
     def track_playing(self, track):
@@ -114,7 +118,7 @@ class Track(util.compile_ui("osd.ui"), BaseOSD):
             self.show_osd(track)
 
     def show_osd(self, track):
-        self._pre_show()
+        OSC._pre_show(self)
 
         if not track:
             track = app.get().playlist.current_track()
@@ -148,7 +152,7 @@ class Track(util.compile_ui("osd.ui"), BaseOSD):
             self.track.setText(track.title)
 
         self.status.setText(status)
-        self._show_osd()
+        OSD._show_osd(self)
 
 
 if __name__ == "__main__":

@@ -3,9 +3,8 @@ import os
 
 import app
 import util
-from PyQt5.QtCore import QUrl
-from PyQt5.QtMultimedia import QMediaContent
-from PyQt5.QtMultimedia import QMediaPlayer
+from PySide6.QtCore import QUrl
+from PySide6.QtMultimedia import QMediaPlayer
 
 
 class Player:
@@ -20,7 +19,7 @@ class Player:
         self._track = None
 
     def _handleStatusChange(self, status):
-        if status == self._player.EndOfMedia:
+        if status == QMediaPlayer.EndOfMedia:
             util.EventBus.send(util.Listener.track_ended, self._track)
 
     def _handlePositionChange(self, position):
@@ -70,7 +69,7 @@ class Player:
 
     def set_track(self, track):
         if os.path.isfile(track.path):
-            self._player.setMedia(QMediaContent(QUrl.fromLocalFile(track.path)))
+            self._player.setSource(QUrl.fromLocalFile(track.path))
             self._track = track
             util.EventBus.send(util.Listener.track_changed, track)
 

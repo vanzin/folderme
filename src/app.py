@@ -11,11 +11,11 @@ import osd
 import playlist
 import randomizer
 import util
-from PyQt5.QtCore import QTimer
-from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QApplication
-from PyQt5.QtWidgets import QMenu
-from PyQt5.QtWidgets import QSystemTrayIcon
+from PySide6.QtCore import QTimer
+from PySide6.QtGui import QIcon
+from PySide6.QtWidgets import QApplication
+from PySide6.QtWidgets import QMenu
+from PySide6.QtWidgets import QSystemTrayIcon
 
 
 _INSTANCE = None
