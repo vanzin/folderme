@@ -45,7 +45,6 @@ class OSD:
             | Qt.Tool
         )
         self.setAttribute(Qt.WA_ShowWithoutActivating)
-        self.setAttribute(Qt.WA_TranslucentBackground)
         self.setAttribute(Qt.WA_X11DoNotAcceptFocus)
         self.setWindowOpacity(0.80)
 
