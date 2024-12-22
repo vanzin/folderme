@@ -49,9 +49,10 @@ class Track(util.ConfigObj):
         parts = tags["tracknumber"][0].split("/")
         self.trackno = int(parts[0])
 
-        self.discno = 1
+        self._discno = 1
         try:
-            self._discno = tags["discnumber"][0]
+            discno = tags["discnumber"][0]
+            self._discno = int(discno.split("/")[0])
         except:
             pass
 
@@ -113,8 +114,7 @@ class Album(util.ConfigObj):
             t = Track()
             try:
                 t.init(os.path.join(path, f))
-            except Exception as e:
-                print(f"error processing {path}/{f}: {e}")
+            except Exception:
                 continue
 
             if title and title != t.album:
@@ -188,11 +188,8 @@ class Scanner(QThread):
 
                     try:
                         a = Album()
-                        try:
-                            a.init(root, files=files)
-                            albums.append(a)
-                        except Exception:
-                            util.print_error()
+                        a.init(root, files=files)
+                        albums.append(a)
                     except:
                         pass
 
