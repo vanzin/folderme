@@ -89,7 +89,7 @@ class MainWindow(BaseMainWindow, util.Listener):
         self.previous.clicked.connect(p.prev)
         self.stop.clicked.connect(p.stop)
 
-        tools = QMenu()
+        tools = QMenu(self)
 
         a = tools.addAction("Browser")
         a.triggered.connect(self.show_browser)
