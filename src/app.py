@@ -49,7 +49,7 @@ class TrayIcon(QSystemTrayIcon, util.Listener):
         util.EventBus.add(self)
 
     def _activated(self, reason):
-        if reason != self.Trigger:
+        if reason != QSystemTrayIcon.Trigger:
             return
 
         if self.ui.isVisible():
