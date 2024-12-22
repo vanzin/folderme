@@ -5,6 +5,7 @@ import app
 import util
 from PySide6.QtCore import QUrl
 from PySide6.QtMultimedia import QMediaPlayer
+from PySide6.QtWidgets import QAbstractSlider
 
 
 class Player:
@@ -48,10 +49,10 @@ class Player:
                 util.EventBus.send(util.Listener.track_stopped, self._track)
 
     def is_playing(self):
-        return self._player.state() == self._player.PlayingState
+        return self._player.playbackState() == QMediaPlayer.PlayingState
 
     def is_paused(self):
-        return self._player.state() == self._player.PausedState
+        return self._player.playbackState() == QMediaPlayer.PausedState
 
     def init_ui(self, ui):
         adapter = UIAdapter(ui, self)
@@ -153,13 +154,13 @@ class UIAdapter(util.Listener):
         if self._slider_locked:
             return
 
-        if action == self.ui.tPosition.SliderSingleStepAdd:
+        if action == QAbstractSlider.SliderSingleStepAdd:
             step = self.duration // 100
-        elif action == self.ui.tPosition.SliderSingleStepSub:
+        elif action == QAbstractSlider.SliderSingleStepSub:
             step = -self.duration // 100
-        elif action == self.ui.tPosition.SliderPageStepAdd:
+        elif action == QAbstractSlider.SliderPageStepAdd:
             step = self.duration // 10
-        elif action == self.ui.tPosition.SliderPageStepSub:
+        elif action == QAbstractSlider.SliderPageStepSub:
             step = -self.duration // 10
         else:
             return

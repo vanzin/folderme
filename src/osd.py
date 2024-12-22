@@ -19,7 +19,7 @@ def show_msg(msg):
 
 
 def show_track(track):
-    OSC.instance(Track).show_osd(track)
+    OSD.instance(Track).show_osd(track)
 
 
 class OSD:
@@ -35,7 +35,7 @@ class OSD:
         return cls._INSTANCES[impl]
 
     @staticmethod
-    def init_osc(self):
+    def init_osc():
         self.setFocusPolicy(Qt.NoFocus)
         self.setWindowFlags(
             Qt.FramelessWindowHint
@@ -49,7 +49,7 @@ class OSD:
         self.setWindowOpacity(0.80)
 
     @staticmethod
-    def _pre_show(self):
+    def _pre_show():
         if OSD._TIMER:
             OSD._TIMER.stop()
             OSD._TIMER = None
@@ -58,34 +58,34 @@ class OSD:
             OSD._WINDOW.close()
 
     @staticmethod
-    def _show_osd(self):
-        psize = self.sizeHint()
+    def _show_osd(widget):
+        psize = widget.sizeHint()
 
         sw = QGuiApplication.primaryScreen().availableSize().width()
         w = psize.width()
         if psize.width() > sw:
             w = sw / 2
 
-        self.resize(QSize(w, psize.height()))
+        widget.resize(QSize(w, psize.height()))
 
         y = 64
         x = sw // 2 - w // 2
-        self.move(QPoint(x, y))
+        widget.move(QPoint(x, y))
 
         show_timer = QTimer()
         show_timer.setSingleShot(True)
-        show_timer.timeout.connect(self._close)
+        show_timer.timeout.connect(lambda: OSD._close(widget))
         show_timer.start(2000)
 
         OSD._TIMER = show_timer
-        OSD._WINDOW = self
-        QTimer.singleShot(0, self.show)
+        OSD._WINDOW = widget
+        QTimer.singleShot(0, widget.show)
 
     @staticmethod
-    def _close(self):
+    def _close(widget):
         OSD._TIMER = None
         OSD._WINDOW = None
-        self.close()
+        widget.close()
 
 
 class Message(util.compile_ui("osd_msg.ui")):
@@ -93,7 +93,7 @@ class Message(util.compile_ui("osd_msg.ui")):
         super().__init__()
 
     def show_osd(self, msg):
-        OSD._pre_show(self)
+        OSD._pre_show()
         self.lMessage.setText(msg)
         OSD._show_osd(self)
 
@@ -117,7 +117,7 @@ class Track(util.compile_ui("osd.ui")):
             self.show_osd(track)
 
     def show_osd(self, track):
-        OSC._pre_show(self)
+        OSD._pre_show()
 
         if not track:
             track = app.get().playlist.current_track()
