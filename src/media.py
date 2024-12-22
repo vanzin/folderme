@@ -1,9 +1,9 @@
 # SPDX-License-Identifier: BSD-2-Clause
 import os
 
-import app
 import util
 from PySide6.QtCore import QUrl
+from PySide6.QtMultimedia import QAudioOutput
 from PySide6.QtMultimedia import QMediaPlayer
 from PySide6.QtWidgets import QAbstractSlider
 
@@ -13,8 +13,9 @@ class Player:
     Player encapsulates playing a single file.
     """
 
-    def __init__(self):
-        self._player = QMediaPlayer(app.get())
+    def __init__(self, parent):
+        self._player = QMediaPlayer(parent)
+        self._player.setAudioOutput(QAudioOutput(parent))
         self._player.mediaStatusChanged.connect(self._handleStatusChange)
         self._player.positionChanged.connect(self._handlePositionChange)
         self._track = None

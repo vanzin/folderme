@@ -58,7 +58,6 @@ class Playlist(util.ConfigObj, util.Listener):
     def __init__(self):
         self.albums = []
         self.track_idx = 0
-        self._player = media.Player()
         self._inhibity_play = False
         util.EventBus.add(self)
 
@@ -171,6 +170,7 @@ class Playlist(util.ConfigObj, util.Listener):
         self.save()
 
     def init_ui(self, ui):
+        self._player = media.Player(ui)
         track = self.current_track()
         if track:
             self._player.set_track(track.info)
