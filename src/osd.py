@@ -35,14 +35,13 @@ class OSD:
         return cls._INSTANCES[impl]
 
     @staticmethod
-    def init_osc():
+    def init_osd():
         self.setFocusPolicy(Qt.NoFocus)
         self.setWindowFlags(
             Qt.FramelessWindowHint
             | Qt.WindowStaysOnTopHint
             | Qt.WindowDoesNotAcceptFocus
             | Qt.WindowTransparentForInput
-            | Qt.Tool
         )
         self.setAttribute(Qt.WA_ShowWithoutActivating)
         self.setAttribute(Qt.WA_X11DoNotAcceptFocus)
@@ -58,34 +57,46 @@ class OSD:
             OSD._WINDOW.close()
 
     @staticmethod
-    def _show_osd(widget):
-        psize = widget.sizeHint()
+    def _show_osd(wnd):
+        psize = wnd.sizeHint()
 
         sw = QGuiApplication.primaryScreen().availableSize().width()
         w = psize.width()
         if psize.width() > sw:
             w = sw / 2
 
-        widget.resize(QSize(w, psize.height()))
+        wnd.setFocusPolicy(Qt.NoFocus)
+        wnd.setWindowFlags(
+            Qt.FramelessWindowHint
+            | Qt.WindowStaysOnTopHint
+            | Qt.WindowDoesNotAcceptFocus
+            | Qt.WindowTransparentForInput
+            | Qt.Window
+        )
+        wnd.setAttribute(Qt.WA_ShowWithoutActivating)
+        wnd.setAttribute(Qt.WA_X11DoNotAcceptFocus)
+        wnd.setWindowOpacity(0.80)
+
+        wnd.resize(QSize(w, psize.height()))
 
         y = 64
         x = sw // 2 - w // 2
-        widget.move(QPoint(x, y))
+        wnd.move(QPoint(x, y))
 
         show_timer = QTimer()
         show_timer.setSingleShot(True)
-        show_timer.timeout.connect(lambda: OSD._close(widget))
+        show_timer.timeout.connect(lambda: OSD._close(wnd))
         show_timer.start(2000)
 
         OSD._TIMER = show_timer
-        OSD._WINDOW = widget
-        QTimer.singleShot(0, widget.show)
+        OSD._WINDOW = wnd
+        QTimer.singleShot(0, wnd.show)
 
     @staticmethod
-    def _close(widget):
+    def _close(wnd):
         OSD._TIMER = None
         OSD._WINDOW = None
-        widget.close()
+        wnd.close()
 
 
 class Message(util.compile_ui("osd_msg.ui")):
