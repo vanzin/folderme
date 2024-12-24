@@ -89,24 +89,11 @@ class MainWindow(BaseMainWindow, util.Listener):
         self.previous.clicked.connect(p.prev)
         self.stop.clicked.connect(p.stop)
 
-        tools = QMenu(self)
-
-        a = tools.addAction("Browser")
-        a.triggered.connect(self.show_browser)
-
-        a = tools.addAction("Next Album")
-        a.triggered.connect(self.driver.pick_next)
-
-        a = tools.addAction("Rescan Collection")
-        a.triggered.connect(self.rescan)
-
-        a = tools.addAction("Config")
-        a.triggered.connect(self.show_config)
-
-        a = tools.addAction("Quit")
-        a.triggered.connect(self.handleQuit)
-
-        self.bTools.setMenu(tools)
+        self.nextAlbum.clicked.connect(lambda x: self.driver.pick_next())
+        self.browser.clicked.connect(lambda x: self.show_browser())
+        self.rescan.clicked.connect(lambda x: self.do_rescan())
+        self.config.clicked.connect(lambda x: self.show_config())
+        self.quit.clicked.connect(lambda x: self.handleQuit())
 
         self.playlistUI.setFocus()
         util.restore_ui(self, "main")
@@ -145,7 +132,7 @@ class MainWindow(BaseMainWindow, util.Listener):
     def collection_changed(self):
         self.repaint()
 
-    def rescan(self):
+    def do_rescan(self):
         app.get().collection.scan(self)
 
 
