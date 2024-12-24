@@ -160,7 +160,7 @@ class Playlist(util.ConfigObj, util.Listener):
 
         if track.stop_after:
             track.stop_after = False
-            self._player.stop(fire_event=False)
+            self._player.stop()
 
         QTimer.singleShot(0, self._post_track_ended)
 

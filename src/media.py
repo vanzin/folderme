@@ -16,38 +16,40 @@ class Player:
     def __init__(self, parent):
         self._player = QMediaPlayer(parent)
         self._player.setAudioOutput(QAudioOutput(parent))
-        self._player.mediaStatusChanged.connect(self._handleStatusChange)
+        self._player.mediaStatusChanged.connect(self._handleMediaChange)
+        self._player.playbackStateChanged.connect(self._handlePlaybackChange)
         self._player.positionChanged.connect(self._handlePositionChange)
         self._track = None
 
-    def _handleStatusChange(self, status):
+    def _handleMediaChange(self, status):
         if status == QMediaPlayer.EndOfMedia:
             util.EventBus.send(util.Listener.track_ended, self._track)
+
+    def _handlePlaybackChange(self, status):
+        if status == QMediaPlayer.PlayingState:
+            util.EventBus.send(util.Listener.track_playing, self._track)
+        elif status == QMediaPlayer.StoppedState:
+            util.EventBus.send(util.Listener.track_stopped, self._track)
+        elif status == QMediaPlayer.PausedState:
+            util.EventBus.send(util.Listener.track_paused, self._track)
 
     def _handlePositionChange(self, position):
         util.EventBus.send(util.Listener.track_position_changed, self._track, position)
 
     def play(self, track=None):
-        fire_event = not self.is_playing()
         if track:
             print(f"Playing track {track.path}")
             self.set_track(track)
-            fire_event = True
         if self._track:
             self._player.play()
-            if fire_event:
-                util.EventBus.send(util.Listener.track_playing, self._track)
 
     def pause(self):
         if self.is_playing():
             self._player.pause()
-            util.EventBus.send(util.Listener.track_paused, self._track)
 
-    def stop(self, fire_event=True):
+    def stop(self):
         if self.is_playing() or self.is_paused():
             self._player.stop()
-            if fire_event:
-                util.EventBus.send(util.Listener.track_stopped, self._track)
 
     def is_playing(self):
         return self._player.playbackState() == QMediaPlayer.PlayingState
