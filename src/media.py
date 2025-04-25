@@ -2,6 +2,7 @@
 import os
 
 import util
+from PySide6.QtCore import QTimer
 from PySide6.QtCore import QUrl
 from PySide6.QtMultimedia import QAudioOutput
 from PySide6.QtMultimedia import QMediaPlayer
@@ -15,17 +16,27 @@ class Player:
 
     def __init__(self, parent):
         self._player = QMediaPlayer(parent)
-        self._player.setAudioOutput(QAudioOutput(parent))
+        self._output = QAudioOutput(parent)
+        self._player.setAudioOutput(self._output)
         self._player.mediaStatusChanged.connect(self._handleMediaChange)
         self._player.playbackStateChanged.connect(self._handlePlaybackChange)
         self._player.positionChanged.connect(self._handlePositionChange)
         self._track = None
+        self._play_on_load = False
 
     def _handleMediaChange(self, status):
+        title = None
+        if self._track:
+            title = self._track.title
+        print(f"media: {status} {title}")
         if status == QMediaPlayer.EndOfMedia:
             util.EventBus.send(util.Listener.track_ended, self._track)
+        elif status == QMediaPlayer.LoadedMedia:
+            if self._play_on_load:
+                QTimer.singleShot(0, self._delayed_play)
 
     def _handlePlaybackChange(self, status):
+        print(f"playback state: {status}")
         if status == QMediaPlayer.PlayingState:
             util.EventBus.send(util.Listener.track_playing, self._track)
         elif status == QMediaPlayer.StoppedState:
@@ -36,12 +47,34 @@ class Player:
     def _handlePositionChange(self, position):
         util.EventBus.send(util.Listener.track_position_changed, self._track, position)
 
+    def _delayed_play(self):
+        # For whatever reason sometimes the underlying player keeps going back and
+        # forth between loading and loaded, and calling play() at the wrong time does
+        # not work.
+        if self._player.mediaStatus() != QMediaPlayer.LoadedMedia:
+            return
+
+        # Players seems to not really start unless the position is set first. Weird.
+        self.set_position(0)
+        self._player.play()
+        self._play_on_load = False
+
     def play(self, track=None):
+        print(
+            f"play {track}: state {self._player.playbackState()}, media {self._player.mediaStatus()}"
+        )
+
         if track:
             print(f"Playing track {track.path}")
+            self._play_on_load = True
             self.set_track(track)
-        if self._track:
+
+        if self.is_paused():
             self._player.play()
+        elif self._player.mediaStatus() != QMediaPlayer.LoadedMedia:
+            self._play_on_load = True
+        else:
+            self._delayed_play()
 
     def pause(self):
         if self.is_playing():
@@ -73,8 +106,8 @@ class Player:
 
     def set_track(self, track):
         if os.path.isfile(track.path):
-            self._player.setSource(QUrl.fromLocalFile(track.path))
             self._track = track
+            self._player.setSource(QUrl.fromLocalFile(track.path))
             util.EventBus.send(util.Listener.track_changed, track)
 
 

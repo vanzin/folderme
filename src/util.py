@@ -71,6 +71,8 @@ class EventBus:
             QTimer.singleShot(0, lambda: cls.send(handler, *args))
             return
 
+        cls.FIRING = True
+
         for l in cls.LISTENERS:
             m = getattr(l, handler.__name__, None)
             if m:
